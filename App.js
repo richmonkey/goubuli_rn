@@ -35,10 +35,14 @@ import {setMessages, addMessage, ackMessage} from './chat/actions'
 import {addConversation, updateConversation} from "./chat/actions";
 import {setConversation} from './chat/actions';
 
+import ProfileDB from './ProfileDB';
+
+import Authentication from "./Authentication";
 import Login from "./Login";
 import PeerChat from "./chat/PeerChat";
 import GroupChat from "./chat/GroupChat"
 import Conversation from './Conversation';
+import Contact from './Contact';
 
 var appReducers = require('./chat/reducers');
 var IMService = require("./chat/im");
@@ -46,10 +50,13 @@ var im = IMService.instance;
 
 var app = {
     registerScreens: function() {
-        Navigation.registerComponent('demo.Login', () => Login, this.store, Provider);
-        Navigation.registerComponent('demo.PeerChat', () => PeerChat, this.store, Provider);
-        Navigation.registerComponent('demo.GroupChat', () => GroupChat, this.store, Provider);
-        Navigation.registerComponent('demo.Conversation', () => Conversation, this.store, Provider);
+        Navigation.registerComponent('app.Authentication', () => Authentication, this.store, Provider);
+        Navigation.registerComponent('app.Login', () => Login, this.store, Provider);
+        Navigation.registerComponent('chat.PeerChat', () => PeerChat, this.store, Provider);
+        Navigation.registerComponent('chat.GroupChat', () => GroupChat, this.store, Provider);
+        Navigation.registerComponent('app.Conversation', () => Conversation, this.store, Provider);
+        Navigation.registerComponent('app.Contact', () => Contact, this.store, Provider);
+     
     },
     
     handlePeerMessage: function(message) {
@@ -271,40 +278,72 @@ var app = {
     startApp: function() {
         this.store = createStore(appReducers);
         
-        var db = SQLite.openDatabase({name:"gobelieve.db", createFromLocation : 1},
-                                     function() {
-                                         console.log("db open success");
-                                     },
-                                     function(err) {
-                                         console.log("db open error:", err);
-                                     });
-        PeerMessageDB.getInstance().setDB(db);
-        GroupMessageDB.getInstance().setDB(db);
 
-        this.db = db;
-        
         AppState.addEventListener('change', this.handleAppStateChange.bind(this));
         var im = IMService.instance;
         im.startReachabilityNotifier();
         im.addObserver(this);
 
         this.registerScreens();
-        Navigation.startSingleScreenApp({
-            screen: {
-                screen: 'demo.Login',
-                title: 'Login',
-                navigatorStyle: {
-                    navBarBackgroundColor: '#4dbce9',
-                    navBarTextColor: '#ffff00',
-                    navBarSubtitleTextColor: '#ff0000',
-                    navBarButtonColor: '#ffffff',
-                    statusBarTextColorScheme: 'light'
-                },
-            },
-            passProps: {
-                app:this
+
+
+        ProfileDB.getInstance().load((e, o) => {
+            console.log("profile:", e, o);
+            if (e || o.uid == 0) {
+                Navigation.startSingleScreenApp({
+                    screen: {
+                        screen: 'app.Authentication',
+                        title: 'Auth',
+                        navigatorStyle: {
+                            navBarBackgroundColor: '#4dbce9',
+                            navBarTextColor: '#ffff00',
+                            navBarSubtitleTextColor: '#ff0000',
+                            navBarButtonColor: '#ffffff',
+                            statusBarTextColorScheme: 'light'
+                        },
+                    },
+                    passProps: {
+                        app:this
+                    }
+                });
+            } else {
+                Navigation.startTabBasedApp({
+                    tabs: [
+                        {
+                            screen: 'app.Conversation',
+                            icon: require("./Images/tabbar_chats.png"),
+                            label:"对话",
+                            title:"对话",
+                            navigatorStyle: {
+                                navBarBackgroundColor: '#4dbce9',
+                                navBarTextColor: '#ffff00',
+                                navBarSubtitleTextColor: '#ff0000',
+                                navBarButtonColor: '#ffffff',
+                                statusBarTextColorScheme: 'light'
+                            },
+                        },
+                        {
+                            screen: 'app.Contact',
+                            icon: require("./Images/tabbar_contacts.png"),
+                            label:"联系人",
+                            title:"联系人",
+                            navigatorStyle: {
+                                navBarBackgroundColor: '#4dbce9',
+                                navBarTextColor: '#ffff00',
+                                navBarSubtitleTextColor: '#ff0000',
+                                navBarButtonColor: '#ffffff',
+                                statusBarTextColorScheme: 'light'
+                            },
+                        }
+                    ],
+                    passProps: {
+                        app:this
+                    }
+                });
             }
         });
+        
+    
     },
 }
 

@@ -32,7 +32,6 @@ export default class PeerMessageDB {
             this.db.executeSql("SELECT id, sender, receiver, timestamp, flags, content FROM peer_message WHERE id= ?",
                                [msgID],
                                function(result) {
-                                   console.log("tt:", result);
                                    if (result.rows.length > 0) {
                                        var row = result.rows.item(0);
                                        console.log("get message result:", row);
