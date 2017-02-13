@@ -23,7 +23,7 @@ import ProfileDB from './ProfileDB';
 var IMService = require("./chat/im");
 var im = IMService.instance;
 
-const API_URL = "http://goubuli.mobi";
+const API_URL = "http://api.goubuli.mobi";
 export default class Login extends Component {
 
     static navigatorButtons = {

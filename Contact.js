@@ -16,7 +16,7 @@ import Spinner from 'react-native-loading-spinner-overlay';
 var SQLite = require('react-native-sqlite-storage');
 
 import ProfileDB from "./ProfileDB";
-const API_URL = "http://goubuli.mobi";
+const API_URL = "http://api.goubuli.mobi";
 
 class Contact extends React.Component {
     constructor(props) {
@@ -69,8 +69,11 @@ class Contact extends React.Component {
                 var arr = [];
                 for (var i in contacts) {
                     var contact = contacts[i];
-                    var name = contact['given_name'];
-                    var id = parseInt(contact['id']);
+                    if (contact['deleted']) {
+                        continue;
+                    }
+                    var name = contact['name'];
+                    var id = parseInt(contact['user_id']);
                     arr.push({id:id, name:name});
                 }
 

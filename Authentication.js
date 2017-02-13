@@ -20,7 +20,7 @@ import Spinner from 'react-native-loading-spinner-overlay';
 var IMService = require("./chat/im");
 var im = IMService.instance;
 
-const API_URL = "http://goubuli.mobi";
+const API_URL = "http://api.goubuli.mobi";
 export default class Authentication extends Component {
     constructor(props) {
         super(props);
@@ -125,7 +125,7 @@ export default class Authentication extends Component {
             alert("请填写手机号码");
             return;
         }
-        var url = API_URL + `/auth/verify_code?zone=86&number=${this.state.number}`;
+        var url = API_URL + `/verify_code?zone=86&number=${this.state.number}`;
         console.log("url:", url);
 
         this.setState({
