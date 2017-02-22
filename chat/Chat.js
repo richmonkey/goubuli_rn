@@ -41,7 +41,7 @@ console.log("document path:", AudioUtils.DocumentDirectoryPath);
 
 import InputToolbar, {MIN_INPUT_TOOLBAR_HEIGHT} from './InputToolbar';
 import MessageContainer from './MessageContainer';
-
+import {playMessage, listenMessage} from './actions';
 
 var IMService = require("./im");
 
@@ -60,6 +60,8 @@ export default class Chat extends React.Component {
             recordingColor:"transparent",
 
             canLoadMoreContent:true,
+
+            currentMetering:0,
         };
 
         this._keyboardHeight = 0;
@@ -256,6 +258,7 @@ export default class Chat extends React.Component {
             flags:0,
             timestamp:now,
 
+            outgoing:true,
             audio: obj.audio,
             uuid: obj.uuid,
             createdAt: new Date(),
@@ -298,7 +301,8 @@ export default class Chat extends React.Component {
             content: textMsg,
             flags:0,
             timestamp:now,
-            
+
+            outgoing:true,
             text: text,
             createdAt: new Date(),
             user: {
@@ -401,6 +405,7 @@ export default class Chat extends React.Component {
             flags:0,
             timestamp:now,
 
+            outgoing:true,
             image: obj.image2,
             createdAt: new Date(),
             user: {
@@ -462,7 +467,8 @@ export default class Chat extends React.Component {
             content: content,
             flags:0,
             timestamp:now,
-            
+
+            outgoing:true,
             location: obj.location,
             createdAt: new Date(),
             user: {
@@ -581,6 +587,17 @@ export default class Chat extends React.Component {
         }
     }
 
+    stopPlayer() {
+        if (this.player) {
+            var msgID = this.playingMessage.id;
+            this.player.stop();
+            this.player.release();
+            this.player = null;
+            this.playingMessage = null;
+            clearInterval(this.playingTimer);
+            this.props.dispatch(playMessage(msgID, false));
+        }
+    }
     
     onMessagePress(message) {
         console.log("on message press:", message);
@@ -588,10 +605,7 @@ export default class Chat extends React.Component {
 
             //停止正在播放的消息
             if (this.player && this.playingMessage.id == message.id) {
-                this.player.stop();
-                this.player.release();
-                this.player = null;
-                this.playingMessage = null;
+                this.stopPlayer();
                 return;
             }
 
@@ -608,10 +622,7 @@ export default class Chat extends React.Component {
                     }
 
                     if (this.player) {
-                        this.player.stop();
-                        this.player.release();
-                        this.player = null;
-                        this.playingMessage = null;
+                        this.stopPlayer();
                     }
                     
                     console.log("playing message...:", audioFile);
@@ -630,15 +641,20 @@ export default class Chat extends React.Component {
                     });
                 })
                 .then((player) => {
+                    var self = this;
+                    var msgID = message.id;
+                    this.props.dispatch(listenMessage(msgID));
+                    this.setMessageListened(message);
+                    this.playingTimer = setInterval(function() {
+                        self.props.dispatch(playMessage(msgID, true));
+                    }, 200);
                     this.playingMessage = message;
                     this.player = player
                     this.player.play((success)=> {
                         console.log("play:", message.uuid,
                                     "result:", success);
-                        
-                        this.player.release();
-                        this.player = null;
-                        this.playingMessage = null;
+
+                        this.stopPlayer();
                     });
                 })
                 .catch((err) => {
@@ -646,23 +662,45 @@ export default class Chat extends React.Component {
                 });
 
         }
+        if (message.image) {
+            var navigator = this.props.navigator;
+            navigator.showLightBox({
+                screen:"demo.Photo",
+                passProps:{
+                    url:message.image.url
+                },
+                navigatorStyle: {
+                    statusBarHideWithNavBar:true,
+                    statusBarHidden:true,
+                },
+            });
+        }
     }
     
     startRecording() {
-        if (this.player) {
-            this.player.stop();
-            this.player.release();
-            this.player = null;
-            this.playingMessage = null;
-        }
+        this.stopPlayer();
         
         this.recordingBegin = new Date();
-        
+
+        var self = this;
         var fileName = Platform.select({
             ios: "recording.wav",
             android: "recording.amr",
         });
         var audioPath = AudioUtils.DocumentDirectoryPath + "/" + fileName;
+        AudioRecorder.onProgress = function(data) {
+            console.log("record progress:", data);
+
+            var metering = data.currentMetering;
+            //ios: [-160, 0]
+            metering = Math.max(metering, -160);
+            metering = Math.min(metering, 0);
+
+            //to [0, 20]
+            var t = 20*(metering - (-160))/160;
+            t = Math.floor(t);
+            self.setState({currentMetering:t});
+        };
         AudioRecorder.prepareRecordingAtPath(audioPath, {
             SampleRate: 8000,
             Channels: 2,
@@ -674,6 +712,7 @@ export default class Chat extends React.Component {
                 ios: "lpcm",
                 android: "amr_nb",
             }),
+            MeteringEnabled:true,
         });
 
         AudioRecorder.startRecording();
@@ -797,12 +836,12 @@ export default class Chat extends React.Component {
         console.log("keyboard will show:", e, newMessagesContainerHeight);
         console.log("keyboard height:", e.endCoordinates ? e.endCoordinates.height : e.end.height);
 
-
         if (e && e.duration && e.duration > 0) {
-            LayoutAnimation.configureNext(LayoutAnimation.create(
+            var animation = LayoutAnimation.create(
                 e.duration,
-                LayoutAnimation.Types[e.easing]
-            ));
+                LayoutAnimation.Types[e.easing],
+                LayoutAnimation.Properties.opacity);
+            LayoutAnimation.configureNext(animation);
         }
         this.setState({
             messagesContainerHeight:new Animated.Value(newMessagesContainerHeight)
@@ -816,10 +855,11 @@ export default class Chat extends React.Component {
         console.log("keyboard will hide:", e, newMessagesContainerHeight, this.getMaxHeight(), this.inputToolbar.getToolbarHeight(), this.getKeyboardHeight());
 
         if (e && e.duration && e.duration > 0) {
-            LayoutAnimation.configureNext(LayoutAnimation.create(
+            var animation = LayoutAnimation.create(
                 e.duration,
-                LayoutAnimation.Types[e.easing]
-            ));
+                LayoutAnimation.Types[e.easing],
+                LayoutAnimation.Properties.opacity);
+            LayoutAnimation.configureNext(animation);
         }
         
         this.setState({
@@ -894,6 +934,14 @@ export default class Chat extends React.Component {
     saveMessage(message) {
         console.log("save message not implement");        
     }
+
+    setMessageListened(message) {
+        console.log("setMessageListened not implement");
+    }
+
+    setMessageFailure(message) {
+        console.log("setMessageFailure not implement");
+    }
     
     sendMessage(message) {
         console.log("send message not implement");
@@ -945,29 +993,58 @@ export default class Chat extends React.Component {
 
 
     renderRecordView() {
+        var images = [
+            require("./Images/VoiceSearchFeedback000.png"),
+            require("./Images/VoiceSearchFeedback001.png"),
+            require("./Images/VoiceSearchFeedback002.png"),
+            require("./Images/VoiceSearchFeedback003.png"),
+            require("./Images/VoiceSearchFeedback004.png"),
+            require("./Images/VoiceSearchFeedback005.png"),
+            require("./Images/VoiceSearchFeedback006.png"),
+            require("./Images/VoiceSearchFeedback007.png"),
+            require("./Images/VoiceSearchFeedback008.png"),
+            require("./Images/VoiceSearchFeedback009.png"),
+            require("./Images/VoiceSearchFeedback010.png"),
+            require("./Images/VoiceSearchFeedback011.png"),
+            require("./Images/VoiceSearchFeedback012.png"),
+            require("./Images/VoiceSearchFeedback013.png"),
+            require("./Images/VoiceSearchFeedback014.png"),
+            require("./Images/VoiceSearchFeedback015.png"),
+            require("./Images/VoiceSearchFeedback016.png"),
+            require("./Images/VoiceSearchFeedback017.png"),
+            require("./Images/VoiceSearchFeedback018.png"),
+            require("./Images/VoiceSearchFeedback019.png"),
+            require("./Images/VoiceSearchFeedback020.png"),
+        ];
+        
         const {width, height} = Dimensions.get('window');
-        var left = this.state.recording ? 0 : -width;
-        const {recordingText, recordingColor} = this.state;
+        var left = this.state.recording ? 0 : width;
+        const {recordingText, recordingColor, currentMetering} = this.state;
+        //currentMetering [0, 20]
         return (
-            <Animated.View style={{backgroundColor:"#dcdcdcaf",
-                                   position:"absolute",
+            <Animated.View style={{position:"absolute",
                                    top:0,
                                    left:left,
                                    width:width,
                                    height:this.state.messagesContainerHeight,
                                    alignItems:"center",
                                    justifyContent:"center"}}>
-                <Text style={{backgroundColor:recordingColor}}>
-                    {recordingText}
-                </Text>
+                <View style={{backgroundColor:"#dcdcdcaf",
+                              alignItems:"center",
+                              borderRadius:4}}>
+                    <Image source={images[currentMetering]}/>
+                    <Text style={{margin:4,
+                                  padding:4,
+                                  backgroundColor:recordingColor}}>
+                        {recordingText}
+                    </Text>
+                </View>
             </Animated.View>);
         
     }
 
     render() {
         const {width, height} = Dimensions.get('window');
-
-
         
         if (this.state.isInitialized === true) {
             var onViewLayout = (e) => {

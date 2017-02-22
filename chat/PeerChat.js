@@ -1,10 +1,16 @@
 import React from 'react';
+import {
+    Platform,
+} from 'react-native';
+
 import {connect} from 'react-redux'
 import RCTDeviceEventEmitter from 'RCTDeviceEventEmitter';
+import {AudioUtils} from 'react-native-audio';
 
 import PeerMessageDB from './PeerMessageDB.js'
 import {setMessages, addMessage, insertMessages, ackMessage} from './actions'
 import {setUnread, updateConversation, setConversation} from './actions'
+import {MESSAGE_FLAG_FAILURE, MESSAGE_FLAG_LISTENED} from './IMessage';
 
 var IMService = require("./im");
 
@@ -65,7 +71,8 @@ class PeerChat extends Chat {
         t.setTime(m.timestamp*1000);
 
         m._id = m.id;
-
+        m.outgoing = (m.sender == this.props.sender);
+        
         console.log("obj:", obj);
         if (obj.text) {
             m.text = obj.text;
@@ -77,7 +84,7 @@ class PeerChat extends Chat {
                     console.log("image uri:", uri);
                 }
             }
-            m.image = obj.image2
+            m.image = obj.image2;
         } else if (obj.audio) {
             console.log("auido message....");
             m.audio = obj.audio;
@@ -135,6 +142,12 @@ class PeerChat extends Chat {
             
         });
         return p;
+    }
+
+    setMessageListened(message) {
+        var f = message.flags | MESSAGE_FLAG_LISTENED;
+        var db = PeerMessageDB.getInstance();
+        db.updateFlags(message.id, f);
     }
 
     sendMessage(message) {

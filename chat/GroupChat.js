@@ -1,11 +1,17 @@
 import React from 'react';
+import {
+    Platform,
+} from 'react-native';
+
 import {connect} from 'react-redux'
 import RCTDeviceEventEmitter from 'RCTDeviceEventEmitter';
+import {AudioUtils} from 'react-native-audio';
 
 import GroupMessageDB from './GroupMessageDB.js'
 import {setMessages, addMessage, insertMessages, ackMessage} from './actions'
 import {setUnread, updateConversation} from './actions'
 import {setConversation} from './actions';
+import {MESSAGE_FLAG_FAILURE, MESSAGE_FLAG_LISTENED} from './IMessage';
 
 var IMService = require("./im");
 
@@ -92,6 +98,7 @@ class GroupChat extends Chat {
         m.user = {
             _id:m.sender
         };
+        m.outgoing = (this.sender == m.sender);
     }
 
     addMessage(message) {
@@ -137,6 +144,12 @@ class GroupChat extends Chat {
             
         });
         return p;
+    }
+
+    setMessageListened(message) {
+        var f = message.flags | MESSAGE_FLAG_LISTENED;
+        var db = GroupMessageDB.getInstance();
+        db.updateFlags(message.id, f);
     }
 
     sendMessage(message) {
