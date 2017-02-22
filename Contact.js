@@ -30,6 +30,7 @@ class Contact extends React.Component {
         };
 
         this.uid = 0;
+        this.contacts = [];
     }
 
     syncContact(syncKey) {
@@ -115,6 +116,7 @@ class Contact extends React.Component {
                   .then((contacts)=>{
                       console.log("contacts:", contacts);
                       this.contacts = contacts;
+                      RCTDeviceEventEmitter.emit('set_contacts', contacts); 
                       this.setState({
                           dataSource: this.state.dataSource.cloneWithRows(contacts)
                       })
@@ -197,6 +199,7 @@ class Contact extends React.Component {
                  .then((contacts)=>{
                      console.log("contacts:", contacts);
                      this.contacts = contacts;
+                     RCTDeviceEventEmitter.emit('set_contacts', contacts); 
                      this.setState({
                          dataSource: this.state.dataSource.cloneWithRows(contacts)
                      })
@@ -387,7 +390,7 @@ class Contact extends React.Component {
 
 Contact = connect(function(state){
     return {
-        conversations:state.contacts,
+        conversations:state.conversations,
     };
 })(Contact);
 

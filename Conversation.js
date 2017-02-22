@@ -23,6 +23,9 @@ import ProfileDB from "./model/ProfileDB";
 import PeerMessageDB from './chat/PeerMessageDB';
 import GroupMessageDB from './chat/GroupMessageDB';
 
+const CONVERSATION_PEER = "peer";
+const CONVERSATION_GROUP = "group";
+      
 class Conversation extends React.Component {
     constructor(props) {
         super(props);
@@ -34,13 +37,31 @@ class Conversation extends React.Component {
         };
 
         this.uid = 0;
+        this.contacts = [];
     }
 
     
     componentWillMount() {
         var profile = ProfileDB.getInstance();
         
-
+        this.listener = RCTDeviceEventEmitter.addListener('set_contacts', (contacts) => {
+            this.contacts = contacts;
+            var convs = this.props.conversations;
+            convs = convs.map((conv)=> {
+                if (conv.type == CONVERSATION_GROUP) {
+                    return conv;
+                }
+                var c = this.contacts.find((c)=> {
+                    return (c.id == conv.peer);
+                })
+                if (c) {
+                    conv.name = c.name;
+                }
+                return conv;
+            });
+            this.props.dispatch(setConversations(convs));
+        });
+        
         var dbName = `gobelieve_${profile.uid}.db`;
         var options = {
             name:dbName,
@@ -73,11 +94,13 @@ class Conversation extends React.Component {
                        for (var i in messages) {
                            var m = messages[i];
                            console.log("m:", m, "uid:", profile.uid);
-                           var cid = (m.sender == profile.uid) ? m.receiver : m.sender;
-                           cid = "p_" + cid;
+                           var peer = (m.sender == profile.uid) ? m.receiver : m.sender;
+                           var cid = "p_" + peer;
                            var conv = {
                                id:cid,
                                cid:cid,
+                               type:CONVERSATION_PEER,
+                               peer:peer,
                                name:cid,
                                timestamp:m.timestamp,
                                unread:0,
@@ -119,6 +142,8 @@ class Conversation extends React.Component {
                            var conv = {
                                id:cid,
                                cid:cid,
+                               type:CONVERSATION_GROUP,
+                               groupID:m.receiver,
                                name:cid,
                                timestamp:m.timestamp,
                                unread:0,
@@ -146,6 +171,18 @@ class Conversation extends React.Component {
 
         Promise.all([p1, p2]).then((results) => {
             var convs = results[0].concat(results[1]);
+            convs = convs.map((conv)=> {
+                if (conv.type == CONVERSATION_GROUP) {
+                    return conv;
+                }
+                var c = this.contacts.find((c)=> {
+                    return (c.id == conv.peer);
+                })
+                if (c) {
+                    conv.name = c.name;
+                }
+                return conv;
+            });
             this.props.dispatch(setConversations(convs));
         }).catch((err) => {
             
@@ -155,6 +192,8 @@ class Conversation extends React.Component {
     componetWillUnmount() {
         var im = IMService.instance;
         im.stop();
+
+        this.listener.remove();
     }
     
     componentWillReceiveProps(nextProps) {
@@ -207,7 +246,7 @@ class Conversation extends React.Component {
         var t = new Date();
         t = t.setTime(conv.timestamp*1000);
 
-        var reanderUnread = function() {
+        var renderUnread = function() {
             if (conv.unread > 0) {
                 return (
                     <View style={{backgroundColor:"red",
@@ -250,7 +289,7 @@ class Conversation extends React.Component {
                                             height:40}}
                                    source={require("./Images/default.png")}/>
                             
-                            {reanderUnread()}
+                            {renderUnread()}
                         </View>
                         <View style={{flex:1, height:40, marginLeft:12}}>
                             <View style={{flex:1, flexDirection:"row",  justifyContent: 'space-between'}}>
