@@ -104,10 +104,17 @@ class Contact extends React.Component {
                       db.updateSyncKey(responseJson.sync_key);                      
                   })
                   .then(() => {
+                      return db.getDepartments();
+                  })
+                  .then((depts) => {
+                      self.departments = depts;
+                  })
+                  .then(() => {
                       return db.getContacts();
                   })
                   .then((contacts)=>{
                       console.log("contacts:", contacts);
+                      this.contacts = contacts;
                       this.setState({
                           dataSource: this.state.dataSource.cloneWithRows(contacts)
                       })
@@ -129,7 +136,47 @@ class Contact extends React.Component {
             alert(error);
         });
     }
-    
+
+    refreshToken() {
+        var profile = ProfileDB.getInstance();
+        var url = API_URL + "/auth/refresh_token";
+        var obj = {
+            refresh_token:profile.refreshToken
+        };
+        
+        return fetch(url, {
+            method:"POST",  
+            headers: {
+                'Accept': 'application/json',
+            },
+            body:JSON.stringify(obj)
+        }).then((response) => {
+            console.log("status:", response.status);
+            return Promise.all([response.status, response.json()]);
+        }).then((r) => {
+            var status = r[0];
+            var responseJson = r[1];
+            if (status == 200) {
+                console.log("response json:", responseJson);
+                var refreshToken = responseJson.refresh_token;
+                var accessToken = responseJson.access_token;
+                var expires = responseJson.expires_in;
+                var now = new Date();
+                now = now.getTime()/1000;
+                
+                profile.accessToken = accessToken;
+                profile.refreshToken = refreshToken;
+                profile.expires = now + expires;
+                profile.save(() => {
+                });
+                return;
+            } else {
+                console.log("response json:", responseJson);
+                return Promise.reject(responseJson.error);
+            }
+        });
+        
+    }
     componentWillMount() {
         var profile = ProfileDB.getInstance();
         var dbName = `contact_${profile.uid}.db`;
@@ -149,62 +196,37 @@ class Contact extends React.Component {
         ContactDB.getInstance().getContacts()
                  .then((contacts)=>{
                      console.log("contacts:", contacts);
+                     this.contacts = contacts;
                      this.setState({
                          dataSource: this.state.dataSource.cloneWithRows(contacts)
                      })
+                 })
+                 .then(() => {
+                     return db.getDepartments();
+                 })
+                 .then((depts) => {
+                     console.log("departments:", depts);
+                     this.departments = depts;
+                 })
+                 .catch((err) => {
+                     console.log("err:", err);
                  });
     
         var now = new Date();
         now = now.getTime()/1000;
         if (now - 60 - profile.expires > 0) {
             console.log("token expires");
-            
-            var url = API_URL + "/auth/refresh_token";
-            var obj = {
-                refresh_token:profile.refreshToken
-            };
-            
-            fetch(url, {
-                method:"POST",  
-                headers: {
-                    'Accept': 'application/json',
-                },
-                body:JSON.stringify(obj)
-            }).then((response) => {
-                console.log("status:", response.status);
-                return Promise.all([response.status, response.json()]);
-            }).then((r) => {
-                var status = r[0];
-                var responseJson = r[1];
-                if (status == 200) {
-                    console.log("response json:", responseJson);
-                    var refreshToken = responseJson.refresh_token;
-                    var accessToken = responseJson.access_token;
-                    var expires = responseJson.expires_in;
-                    var now = new Date();
-                    now = now.getTime()/1000;
-                    
-                    profile.accessToken = accessToken;
-                    profile.refreshToken = refreshToken;
-                    profile.expires = now + expires;
-                    profile.save(() => {
-                    });
-                    return;
-                } else {
-                    console.log("response json:", responseJson);
-                    if (responseJson.error) {
-                        alert(responseJson.error);
-                    }
-                }
-            }).then(() => {
-                var db = ContactDB.getInstance();
-                return db.getSyncKey();
-            }).then((syncKey) => {
-                this.syncContact(syncKey);
-            }).catch((error) => {
-                console.log("error:", error);
-                alert(error);
-            });
+
+            this.refreshToken()
+                .then(() => {
+                    var db = ContactDB.getInstance();
+                    return db.getSyncKey();
+                }).then((syncKey) => {
+                    this.syncContact(syncKey);
+                }).catch((error) => {
+                    console.log("error:", error);
+                    alert(error);
+                });
         } else {
             var db = ContactDB.getInstance();
             db.getSyncKey()
@@ -296,7 +318,56 @@ class Contact extends React.Component {
         );
     }
 
-    
+    renderHeader() {
+        var navigator = this.props.navigator;
+        var p = ProfileDB.getInstance();
+        
+        var self = this;
+        function onPress() {
+            console.log("row data:", self.departments);
+
+            navigator.push({
+                title:"Department",
+                screen:"app.Department",
+                navigatorStyle:{
+                    tabBarHidden:true
+                },
+                passProps:{
+                    dept_id:0,
+                    departments:self.departments,
+                    contacts:self.contacts,
+                },
+            });
+        }
+        return (
+            <TouchableHighlight
+                style={{flex:1,
+                        height:64,
+                        backgroundColor:"white"}}
+                activeOpacity={0.6}
+                underlayColor={"gray"}
+                onPress={onPress}>
+                <View style={{flex:1, height:64}}>
+                    <View style={{flex:1,
+                                  flexDirection:"row",
+                                  justifyContent:"space-between",
+                                  alignItems:"center"}}>
+                        <View style={{flexDirection:"row", alignItems:"center"}}>
+                            <Image style={{ marginHorizontal:12,
+                                            width:40,
+                                            height:40}}
+                                   source={require("./Images/department.png")}/>
+                            <Text>组织架构</Text>
+                        </View>
+                        <Image source={require("./Images/right_arrow.png")}/>
+
+                    </View>
+                    <View style={{ height:1, backgroundColor:"gray"}}/>
+                </View>
+            </TouchableHighlight>
+        );
+        
+    }
     render() {
         return (
             <View style={{flex: 1, marginTop:4}}>
@@ -304,6 +375,7 @@ class Contact extends React.Component {
                 <ListView
                     enableEmptySections={true}
                     dataSource={this.state.dataSource}
+                    renderHeader={this.renderHeader.bind(this)}
                     renderRow={this.renderRow.bind(this)}
                 />
             </View>

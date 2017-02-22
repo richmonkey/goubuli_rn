@@ -41,6 +41,7 @@ import Authentication from "./Authentication";
 import Login from "./Login";
 import Conversation from './Conversation';
 import Contact from './Contact';
+import Department from './Department';
 
 import PeerChat from "./chat/PeerChat";
 import GroupChat from "./chat/GroupChat"
@@ -56,6 +57,7 @@ var app = {
         Navigation.registerComponent('app.Login', () => Login, this.store, Provider);
         Navigation.registerComponent('app.Conversation', () => Conversation, this.store, Provider);
         Navigation.registerComponent('app.Contact', () => Contact, this.store, Provider);
+        Navigation.registerComponent('app.Department', () => Department, this.store, Provider);
 
         Navigation.registerComponent('chat.PeerChat', () => PeerChat, this.store, Provider);
         Navigation.registerComponent('chat.GroupChat', () => GroupChat, this.store, Provider);
