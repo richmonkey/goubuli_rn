@@ -19,7 +19,7 @@ import {setConversations, setUnread} from './chat/actions'
 
 var IMService = require("./chat/im");
 
-import ProfileDB from "./ProfileDB";
+import ProfileDB from "./model/ProfileDB";
 import PeerMessageDB from './chat/PeerMessageDB';
 import GroupMessageDB from './chat/GroupMessageDB';
 
@@ -38,125 +38,118 @@ class Conversation extends React.Component {
 
     
     componentWillMount() {
-        ProfileDB.getInstance()
-                 .load((e, o) => {
-                     if (e) {
-                         console.log("err:", e);
-                         return;
-                     }
-                     console.log("profile object:", o);
-                     var dbName = `gobelieve_${o.uid}.db`;
-                     var options = {
-                         name:dbName,
-                         createFromLocation : "~www/gobelieve.db"
-                     };
-                     var db = SQLite.openDatabase(options,
-                                                  function() {
-                                                      console.log("db open success");
-                                                  },
-                                                  function(err) {
-                                                      console.log("db open error:", err);
-                                                  });
-                     PeerMessageDB.getInstance().setDB(db);
-                     GroupMessageDB.getInstance().setDB(db);
-                     
-                     var im = IMService.instance;
-                     im.accessToken = o.gobelieveToken;
-                     im.start();
-                     this.uid = o.uid;
-                     this.name = o.name;
-                     this.accessToken = o.accessToken;
-                     this.refreshToken = o.refreshToken;
-                     this.expires = o.expires;
-                     
-                     var db = PeerMessageDB.getInstance();
-                     var profile = ProfileDB.getInstance();
-                     var p1 = db.getConversations()
-                                .then((messages) => {
-                                    var convs = [];
-                                    for (var i in messages) {
-                                        var m = messages[i];
-                                        console.log("m:", m, "uid:", profile.uid);
-                                        var cid = (m.sender == profile.uid) ? m.receiver : m.sender;
-                                        cid = "p_" + cid;
-                                        var conv = {
-                                            id:cid,
-                                            cid:cid,
-                                            name:cid,
-                                            timestamp:m.timestamp,
-                                            unread:0,
-                                            message:m,
-                                        }
-                                        var msgObj = JSON.parse(m.content);
-                                        if (msgObj.text) {
-                                            conv.content = msgObj.text;
-                                        } else if (msgObj.image2) {
-                                            conv.content = "一张图片";
-                                        } else if (msgObj.audio) {
-                                            conv.content = "语音"
-                                        } else if (msgObj.location) {
-                                            conv.content = "位置";
-                                        } else {
-                                            conv.content = "";
-                                        }
-                                        
-                                        convs = convs.concat(conv);
-                                    }
-
-                                    console.log("conversations:", convs);
-                                    return convs;
-
-                                });
-
-
-
-                     db = GroupMessageDB.getInstance();
-                     
-                     var p2 = db.getConversations()
-                                .then((messages) => {
-                                    var convs = [];
-                                    for (var i in messages) {
-                                        var m = messages[i];
-                                        m.receiver = m.group_id;
-                                        
-                                        var cid = "g_" + m.receiver;
-                                        var conv = {
-                                            id:cid,
-                                            cid:cid,
-                                            name:cid,
-                                            timestamp:m.timestamp,
-                                            unread:0,
-                                            message:m,
-                                        }
-                                        var msgObj = JSON.parse(m.content);
-                                        if (msgObj.text) {
-                                            conv.content = msgObj.text;
-                                        } else if (msgObj.image2) {
-                                            conv.content = "一张图片";
-                                        } else if (msgObj.audio) {
-                                            conv.content = "语音"
-                                        } else if (msgObj.location) {
-                                            conv.content = "位置";
-                                        } else {
-                                            conv.content = "";
-                                        }
-                                        
-                                        convs = convs.concat(conv);
-                                    }
-
-                                    console.log("conversations:", convs);
-                                    return convs
-                                });
-
-                     Promise.all([p1, p2]).then((results) => {
-                         var convs = results[0].concat(results[1]);
-                         this.props.dispatch(setConversations(convs));
-                     }).catch((err) => {
-                         
-                     })
-                 });
+        var profile = ProfileDB.getInstance();
         
 
+        var dbName = `gobelieve_${profile.uid}.db`;
+        var options = {
+            name:dbName,
+            createFromLocation : "~www/gobelieve.db"
+        };
+        var db = SQLite.openDatabase(options,
+                                     function() {
+                                         console.log("db open success");
+                                     },
+                                     function(err) {
+                                         console.log("db open error:", err);
+                                     });
+        PeerMessageDB.getInstance().setDB(db);
+        GroupMessageDB.getInstance().setDB(db);
+        
+        var im = IMService.instance;
+        im.accessToken = profile.gobelieveToken;
+        im.start();
+        this.uid = profile.uid;
+        this.name = profile.name;
+        this.accessToken = profile.accessToken;
+        this.refreshToken = profile.refreshToken;
+        this.expires = profile.expires;
+        
+        var db = PeerMessageDB.getInstance();
+        var profile = ProfileDB.getInstance();
+        var p1 = db.getConversations()
+                   .then((messages) => {
+                       var convs = [];
+                       for (var i in messages) {
+                           var m = messages[i];
+                           console.log("m:", m, "uid:", profile.uid);
+                           var cid = (m.sender == profile.uid) ? m.receiver : m.sender;
+                           cid = "p_" + cid;
+                           var conv = {
+                               id:cid,
+                               cid:cid,
+                               name:cid,
+                               timestamp:m.timestamp,
+                               unread:0,
+                               message:m,
+                           }
+                           var msgObj = JSON.parse(m.content);
+                           if (msgObj.text) {
+                               conv.content = msgObj.text;
+                           } else if (msgObj.image2) {
+                               conv.content = "一张图片";
+                           } else if (msgObj.audio) {
+                               conv.content = "语音"
+                           } else if (msgObj.location) {
+                               conv.content = "位置";
+                           } else {
+                               conv.content = "";
+                           }
+                           
+                           convs = convs.concat(conv);
+                       }
+
+                       console.log("conversations:", convs);
+                       return convs;
+
+                   });
+
+
+
+        db = GroupMessageDB.getInstance();
+        
+        var p2 = db.getConversations()
+                   .then((messages) => {
+                       var convs = [];
+                       for (var i in messages) {
+                           var m = messages[i];
+                           m.receiver = m.group_id;
+                           
+                           var cid = "g_" + m.receiver;
+                           var conv = {
+                               id:cid,
+                               cid:cid,
+                               name:cid,
+                               timestamp:m.timestamp,
+                               unread:0,
+                               message:m,
+                           }
+                           var msgObj = JSON.parse(m.content);
+                           if (msgObj.text) {
+                               conv.content = msgObj.text;
+                           } else if (msgObj.image2) {
+                               conv.content = "一张图片";
+                           } else if (msgObj.audio) {
+                               conv.content = "语音"
+                           } else if (msgObj.location) {
+                               conv.content = "位置";
+                           } else {
+                               conv.content = "";
+                           }
+                           
+                           convs = convs.concat(conv);
+                       }
+
+                       console.log("conversations:", convs);
+                       return convs
+                   });
+
+        Promise.all([p1, p2]).then((results) => {
+            var convs = results[0].concat(results[1]);
+            this.props.dispatch(setConversations(convs));
+        }).catch((err) => {
+            
+        })
     }
 
     componetWillUnmount() {

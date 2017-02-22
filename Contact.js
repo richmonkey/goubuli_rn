@@ -15,8 +15,9 @@ import RCTDeviceEventEmitter from 'RCTDeviceEventEmitter';
 import Spinner from 'react-native-loading-spinner-overlay';
 var SQLite = require('react-native-sqlite-storage');
 
-import ProfileDB from "./ProfileDB";
-const API_URL = "http://api.goubuli.mobi";
+import ProfileDB from "./model/ProfileDB";
+import ContactDB from "./model/ContactDB";
+import {API_URL} from "./config";
 
 class Contact extends React.Component {
     constructor(props) {
@@ -31,17 +32,17 @@ class Contact extends React.Component {
         this.uid = 0;
     }
 
-    syncContact() {
+    syncContact(syncKey) {
         var self = this;
         var navigator = this.props.navigator;
-        var url = API_URL + "/contact/sync?key=0";
-        
+        var url = API_URL + "/contact/sync?sync_key=" + syncKey;
         var profile = ProfileDB.getInstance();
         var accessToken = profile.accessToken;
 
         var now = new Date();
         console.log("now:", now.getTime()/1000, profile.expires);
         console.log("access token:", accessToken);
+        console.log("sync key:", syncKey);
         this.setState({
             spinnerVisible:true
         });
@@ -63,24 +64,57 @@ class Contact extends React.Component {
             if (status == 200) {
                 console.log("response json:", responseJson);
 
-                //todo save contact
+                var db = ContactDB.getInstance();
                 var contacts = responseJson.contacts;
 
-                var arr = [];
+                var deletedContacts = [];
+                var updatedContacts = [];
                 for (var i in contacts) {
                     var contact = contacts[i];
                     if (contact['deleted']) {
+                        deletedContacts.push(contact);
                         continue;
                     }
-                    var name = contact['name'];
-                    var id = parseInt(contact['user_id']);
-                    arr.push({id:id, name:name});
+                    updatedContacts.push(contact);
                 }
 
-                this.setState({
-                    dataSource: this.state.dataSource.cloneWithRows(arr)
-                })
-                return;
+                var deletedDepartments = [];
+                var updatedDepartments = [];
+                var departments = responseJson.departments;
+                for (var i in departments) {
+                    var dept = departments[i];
+                    if (dept['deleted']) {
+                        deletedDepartments.push(dept);
+                        continue;
+                    }
+                    updatedDepartments.push(dept);
+                }
+                
+                db.updateDepartments(updatedDepartments)
+                  .then(() => {
+                      db.deleteDepartments(deletedDepartments);
+                  })
+                  .then(() => {
+                      db.updateContacts(updatedContacts);
+                  })
+                  .then(() => {
+                      db.deleteContacts(deletedContacts);
+                  })
+                  .then(() => {
+                      db.updateSyncKey(responseJson.sync_key);                      
+                  })
+                  .then(() => {
+                      return db.getContacts();
+                  })
+                  .then((contacts)=>{
+                      console.log("contacts:", contacts);
+                      this.setState({
+                          dataSource: this.state.dataSource.cloneWithRows(contacts)
+                      })
+                  })
+                  .catch((err) => {
+                      console.log("err:", err);
+                  });
             } else {
                 console.log("response json:", responseJson);
                 if (responseJson.meta) {
@@ -98,6 +132,28 @@ class Contact extends React.Component {
     
     componentWillMount() {
         var profile = ProfileDB.getInstance();
+        var dbName = `contact_${profile.uid}.db`;
+        var options = {
+            name:dbName,
+            createFromLocation : "~www/contact.db"
+        };
+        var db = SQLite.openDatabase(options,
+                                     function() {
+                                         console.log("db open success");
+                                     },
+                                     function(err) {
+                                         console.log("db open error:", err);
+                                     });
+        ContactDB.getInstance().setDB(db);
+        
+        ContactDB.getInstance().getContacts()
+                 .then((contacts)=>{
+                     console.log("contacts:", contacts);
+                     this.setState({
+                         dataSource: this.state.dataSource.cloneWithRows(contacts)
+                     })
+                 });
+    
         var now = new Date();
         now = now.getTime()/1000;
         if (now - 60 - profile.expires > 0) {
@@ -141,15 +197,21 @@ class Contact extends React.Component {
                     }
                 }
             }).then(() => {
-                this.syncContact();
+                var db = ContactDB.getInstance();
+                return db.getSyncKey();
+            }).then((syncKey) => {
+                this.syncContact(syncKey);
             }).catch((error) => {
                 console.log("error:", error);
                 alert(error);
             });
         } else {
-            this.syncContact();
+            var db = ContactDB.getInstance();
+            db.getSyncKey()
+              .then((syncKey)=> {
+                  this.syncContact(syncKey);
+              });
         }
-      
     }
 
     componetWillUnmount() {

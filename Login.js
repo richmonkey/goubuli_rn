@@ -18,7 +18,7 @@ import { NativeModules, NativeAppEventEmitter } from 'react-native';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {Navigation} from 'react-native-navigation';
 
-import ProfileDB from './ProfileDB';
+import ProfileDB from './model/ProfileDB';
 
 var IMService = require("./chat/im");
 var im = IMService.instance;

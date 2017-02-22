@@ -35,14 +35,16 @@ import {setMessages, addMessage, ackMessage} from './chat/actions'
 import {addConversation, updateConversation} from "./chat/actions";
 import {setConversation} from './chat/actions';
 
-import ProfileDB from './ProfileDB';
+import ProfileDB from './model/ProfileDB';
 
 import Authentication from "./Authentication";
 import Login from "./Login";
-import PeerChat from "./chat/PeerChat";
-import GroupChat from "./chat/GroupChat"
 import Conversation from './Conversation';
 import Contact from './Contact';
+
+import PeerChat from "./chat/PeerChat";
+import GroupChat from "./chat/GroupChat"
+import Photo from './chat/Photo';
 
 var appReducers = require('./chat/reducers');
 var IMService = require("./chat/im");
@@ -52,11 +54,12 @@ var app = {
     registerScreens: function() {
         Navigation.registerComponent('app.Authentication', () => Authentication, this.store, Provider);
         Navigation.registerComponent('app.Login', () => Login, this.store, Provider);
-        Navigation.registerComponent('chat.PeerChat', () => PeerChat, this.store, Provider);
-        Navigation.registerComponent('chat.GroupChat', () => GroupChat, this.store, Provider);
         Navigation.registerComponent('app.Conversation', () => Conversation, this.store, Provider);
         Navigation.registerComponent('app.Contact', () => Contact, this.store, Provider);
-     
+
+        Navigation.registerComponent('chat.PeerChat', () => PeerChat, this.store, Provider);
+        Navigation.registerComponent('chat.GroupChat', () => GroupChat, this.store, Provider);
+        Navigation.registerComponent('chat.Photo', () => Photo, this.store, Provider);  
     },
     
     handlePeerMessage: function(message) {
@@ -82,8 +85,9 @@ var app = {
         message.user = {
             _id: message.sender
         }
+        message.outgoing = (this.uid == message.sender);
         
-        var cid = (this.uid == message.sender) ? message.receiver : message.sender;        
+        var cid = (this.uid == message.sender) ? message.receiver : message.sender;
         var db = PeerMessageDB.getInstance();
         db.insertMessage(message, cid,
                          function(rowid) {
@@ -184,7 +188,7 @@ var app = {
         message.user = {
             _id: message.sender
         }
-        
+        message.outgoing = (this.uid == message.sender);
   
         var db = GroupMessageDB.getInstance();
         db.insertMessage(message,
