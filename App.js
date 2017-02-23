@@ -36,6 +36,7 @@ import {addConversation, updateConversation} from "./chat/actions";
 import {setConversation} from './chat/actions';
 
 import ProfileDB from './model/ProfileDB';
+import GroupDB from './group/GroupDB';
 
 import Authentication from "./Authentication";
 import Login from "./Login";
@@ -44,12 +45,37 @@ import Contact from './Contact';
 import Department from './Department';
 
 import PeerChat from "./chat/PeerChat";
-import GroupChat from "./chat/GroupChat"
 import Photo from './chat/Photo';
+import GroupChat from "./GroupChat";
 
-var appReducers = require('./chat/reducers');
+import {GroupCreator, GroupSelectMember} from "./group/group_creator";
+import GroupSetting from './group/group_setting';
+import GroupName from './group/group_name';
+import GroupMemberAdd from './group/group_member_add';
+import GroupMemberRemove from './group/group_member_remove';
+
+
+import {conversationsReducer, messagesReducer, conversationReducer}  from './chat/reducers';
+import {profileReducer} from './reducers';
+import {groupReducer} from './group/actions';
+
 var IMService = require("./chat/im");
 var im = IMService.instance;
+
+
+//do not use combineReducers ignore init state of createStore
+function appReducer(state={}, action) {
+    return {
+        conversations:conversationsReducer(state.conversations, action),
+        messages:messagesReducer(state.messages, action),
+        conversation:conversationReducer(state.conversation, action),
+        profile:profileReducer(state.profile, action),
+        group:groupReducer(state.group, action),
+    };
+}
+
+
+
 
 var app = {
     registerScreens: function() {
@@ -61,7 +87,14 @@ var app = {
 
         Navigation.registerComponent('chat.PeerChat', () => PeerChat, this.store, Provider);
         Navigation.registerComponent('chat.GroupChat', () => GroupChat, this.store, Provider);
-        Navigation.registerComponent('chat.Photo', () => Photo, this.store, Provider);  
+        Navigation.registerComponent('chat.Photo', () => Photo, this.store, Provider);
+
+        Navigation.registerComponent('group.GroupSelectMember', () => GroupSelectMember, this.store, Provider);
+        Navigation.registerComponent('group.GroupCreator', () => GroupCreator, this.store, Provider);
+        Navigation.registerComponent('group.GroupSetting', () => GroupSetting, this.store, Provider);
+        Navigation.registerComponent('group.GroupName', () => GroupName, this.store, Provider);
+        Navigation.registerComponent('group.GroupMemberAdd', () => GroupMemberAdd, this.store, Provider);
+        Navigation.registerComponent('group.GroupMemberRemove', () => GroupMemberRemove, this.store, Provider);
     },
     
     handlePeerMessage: function(message) {
@@ -266,7 +299,20 @@ var app = {
 
         this.store.dispatch(ackMessage(msg.id));
     },
-    
+
+    handleGroupNotification: function(msg) {
+        console.log("group notification:", msg);
+        var obj = JSON.parse(msg);
+
+        if (obj.create) {
+            var db = GroupDB.getInstance();
+            db.insertGroup({id:obj.create.group_id,
+                            name:obj.create.name,
+                            master:obj.create.master,
+                            timestamp:obj.create.timestamp,
+                            members:obj.create.members});
+        }
+    },
 
     handleConnectivityChange: function(reach) {
         console.log('connectivity change: ' + reach);
@@ -282,9 +328,7 @@ var app = {
     },
 
     startApp: function() {
-        this.store = createStore(appReducers);
-        
-
+        this.store = createStore(appReducer);
         AppState.addEventListener('change', this.handleAppStateChange.bind(this));
         var im = IMService.instance;
         im.startReachabilityNotifier();
@@ -313,6 +357,8 @@ var app = {
                     }
                 });
             } else {
+                this.store.dispatch({type:"set_profile", profile:o});
+                
                 Navigation.startTabBasedApp({
                     tabs: [
                         {

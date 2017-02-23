@@ -6,7 +6,7 @@ import {
     Image,
     ListView,
     TouchableWithoutFeedback,
-    TouchableHighlight
+    TouchableHighlight,
 } from 'react-native';
 
 
@@ -27,6 +27,17 @@ const CONVERSATION_PEER = "peer";
 const CONVERSATION_GROUP = "group";
       
 class Conversation extends React.Component {
+
+    static navigatorButtons = {
+        rightButtons: [
+            {
+                title: '+', 
+                id: 'new', 
+                showAsAction: 'ifRoom' 
+            },
+        ]
+    };
+    
     constructor(props) {
         super(props);
 
@@ -38,8 +49,28 @@ class Conversation extends React.Component {
 
         this.uid = 0;
         this.contacts = [];
+
+        this.props.navigator.setOnNavigatorEvent(this.onNavigatorEvent.bind(this));
     }
 
+    onNavigatorEvent(event) {
+        console.log("event:", event);
+        if (event.type == 'NavBarButtonPress') { 
+            if (event.id == 'new') {
+                var navigator = this.props.navigator;
+                navigator.push({
+                    title:"Chat",
+                    screen:"group.GroupSelectMember",
+                    navigatorStyle:{
+                        tabBarHidden:true
+                    },
+                    passProps:{
+                        users:this.contacts
+                    },
+                });                
+            }
+        }
+    }
     
     componentWillMount() {
         var profile = ProfileDB.getInstance();
@@ -206,6 +237,7 @@ class Conversation extends React.Component {
     }
     
     renderRow(conv) {
+        var self = this;
         var navigator = this.props.navigator;
         var profile = ProfileDB.getInstance();
         function onPress() {
@@ -230,7 +262,7 @@ class Conversation extends React.Component {
                 var gid = parseInt(conv.cid.substr(2));
                 navigator.push({
                     title:"Chat",
-                    screen:"demo.GroupChat",
+                    screen:"chat.GroupChat",
                     navigatorStyle:{
                         tabBarHidden:true
                     },
@@ -238,6 +270,7 @@ class Conversation extends React.Component {
                         sender:profile.uid,
                         receiver:gid,
                         token:profile.gobelieveToken,
+                        contacts:self.contacts,
                     },
                 });                
             }

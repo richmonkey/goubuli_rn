@@ -197,8 +197,8 @@ class GroupChat extends Chat {
 }
 
 
-GroupChat = connect(function(state){
-    return {messages:state.messages};
-})(GroupChat);
+//GroupChat = connect(function(state){
+//    return {messages:state.messages};
+//})(GroupChat);
 
 export default GroupChat;

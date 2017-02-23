@@ -17,6 +17,8 @@ var SQLite = require('react-native-sqlite-storage');
 
 import ProfileDB from "./model/ProfileDB";
 import ContactDB from "./model/ContactDB";
+import GroupDB from './group/GroupDB';
+
 import {API_URL} from "./config";
 
 class Contact extends React.Component {
@@ -194,6 +196,8 @@ class Contact extends React.Component {
                                          console.log("db open error:", err);
                                      });
         ContactDB.getInstance().setDB(db);
+
+        GroupDB.getInstance().setDB(db);
         
         ContactDB.getInstance().getContacts()
                  .then((contacts)=>{

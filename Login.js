@@ -14,7 +14,8 @@ import {
     AsyncStorage
 } from 'react-native';
 
-import { NativeModules, NativeAppEventEmitter } from 'react-native';
+import {connect} from 'react-redux'
+import { NativeAppEventEmitter } from 'react-native';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {Navigation} from 'react-native-navigation';
 
@@ -24,7 +25,8 @@ var IMService = require("./chat/im");
 var im = IMService.instance;
 
 const API_URL = "http://api.goubuli.mobi";
-export default class Login extends Component {
+
+class Login extends Component {
 
     static navigatorButtons = {
         rightButtons: [
@@ -101,40 +103,41 @@ export default class Login extends Component {
                 profile.name = username;
                 profile.gobelieveToken = gobelieveToken;
                 profile.save((e) => {
-                            Navigation.startTabBasedApp({
-                                tabs: [
-                                    {
-                                        screen: 'app.Conversation',
-                                        icon: require("./Images/tabbar_chats.png"),
-                                        label:"对话",
-                                        title:"对话",
-                                        navigatorStyle: {
-                                            navBarBackgroundColor: '#4dbce9',
-                                            navBarTextColor: '#ffff00',
-                                            navBarSubtitleTextColor: '#ff0000',
-                                            navBarButtonColor: '#ffffff',
-                                            statusBarTextColorScheme: 'light'
-                                        },
-                                    },
-                                    {
-                                        screen: 'app.Contact',
-                                        icon: require("./Images/tabbar_contacts.png"),
-                                        label:"联系人",
-                                        title:"联系人",
-                                        navigatorStyle: {
-                                            navBarBackgroundColor: '#4dbce9',
-                                            navBarTextColor: '#ffff00',
-                                            navBarSubtitleTextColor: '#ff0000',
-                                            navBarButtonColor: '#ffffff',
-                                            statusBarTextColorScheme: 'light'
-                                        },
-                                    }
-                                ],
-                                passProps: {
-                                    app:this.props.app
-                                }
-                            });
-                        });
+                    this.props.dispatch({type:"set_profile", profile:profile});
+                    Navigation.startTabBasedApp({
+                        tabs: [
+                            {
+                                screen: 'app.Conversation',
+                                icon: require("./Images/tabbar_chats.png"),
+                                label:"对话",
+                                title:"对话",
+                                navigatorStyle: {
+                                    navBarBackgroundColor: '#4dbce9',
+                                    navBarTextColor: '#ffff00',
+                                    navBarSubtitleTextColor: '#ff0000',
+                                    navBarButtonColor: '#ffffff',
+                                    statusBarTextColorScheme: 'light'
+                                },
+                            },
+                            {
+                                screen: 'app.Contact',
+                                icon: require("./Images/tabbar_contacts.png"),
+                                label:"联系人",
+                                title:"联系人",
+                                navigatorStyle: {
+                                    navBarBackgroundColor: '#4dbce9',
+                                    navBarTextColor: '#ffff00',
+                                    navBarSubtitleTextColor: '#ff0000',
+                                    navBarButtonColor: '#ffffff',
+                                    statusBarTextColorScheme: 'light'
+                                },
+                            }
+                        ],
+                        passProps: {
+                            app:this.props.app
+                        }
+                    });
+                });
                 return;
             } else {
                 console.log("error:", responseJson);
@@ -222,3 +225,11 @@ export default class Login extends Component {
         
     }
 }
+
+
+Login = connect(function(state){
+    return state;
+
+})(Login);
+
+export default Login;
