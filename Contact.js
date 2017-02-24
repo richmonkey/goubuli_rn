@@ -35,6 +35,8 @@ class Contact extends React.Component {
         this.contacts = [];
     }
 
+
+
     syncContact(syncKey) {
         var self = this;
         var navigator = this.props.navigator;
