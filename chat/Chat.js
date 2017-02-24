@@ -664,16 +664,33 @@ export default class Chat extends React.Component {
         }
         if (message.image) {
             var navigator = this.props.navigator;
-            navigator.showLightBox({
-                screen:"chat.Photo",
-                passProps:{
-                    url:message.image.url
-                },
-                navigatorStyle: {
-                    statusBarHideWithNavBar:true,
-                    statusBarHidden:true,
-                },
-            });
+
+            if (Platform.OS === 'android') {
+                navigator.push({
+                    screen:"chat.Photo",
+                    passProps:{
+                        url:message.image.url
+                    },
+                    navigatorStyle:{
+                        tabBarHidden:true
+                    },
+                    navigatorStyle: {
+                        statusBarHideWithNavBar:true,
+                        statusBarHidden:true,
+                    },
+                });
+            } else {
+                navigator.showLightBox({
+                    screen:"chat.Photo",
+                    passProps:{
+                        url:message.image.url
+                    },
+                    navigatorStyle: {
+                        statusBarHideWithNavBar:true,
+                        statusBarHidden:true,
+                    },
+                });
+            }
         }
     }
     
