@@ -162,12 +162,13 @@ class GroupSetting extends Component {
 
     quitGroup() {
         console.log("remove member:", this.props.uid);
-        let url = API_URL + "/client/groups/" + this.props.group_id + "/members/" + this.props.uid;
-        console.log("url:", url);
-
+        let url = API_URL + "/client/groups/" + this.props.group_id + "/members"
+        u = {uid:this.props.uid, "name":this.props.name};
+        
         this.setState({visible:true});
         fetch(url, {
-            method:"DELETE",  
+            method:"DELETE",
+            body:JSON.stringify([u]),
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
@@ -268,6 +269,7 @@ export default connect(function(state) {
         topic:state.group.name,
         group_id:state.group.id,
         uid:state.profile.uid,
+        name:state.profile.name,
         members:state.group.members,
         is_master:(state.group.master == state.profile.uid),
     };

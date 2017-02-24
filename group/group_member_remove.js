@@ -68,7 +68,7 @@ class GroupMemberRemove extends React.Component {
         this.setState({visible:true});
         fetch(url, {
             method:"DELETE",
-            body:JSON.stringify([u.uid]),
+            body:JSON.stringify([u]),
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',

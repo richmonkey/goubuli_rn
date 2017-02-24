@@ -61,7 +61,7 @@ class GroupMemberAdd extends Component {
     }
     
     addMember(users) {
-        var userIDs = users.map((u) => u.id)
+        var members = users.map((u) => ({uid:u.id, name:u.name}));
 
         var url = API_URL + "/client/groups/" + this.props.group_id + "/members";
         this.setState({visible:true});
@@ -72,7 +72,7 @@ class GroupMemberAdd extends Component {
                 'Content-Type': 'application/json',
                 "Authorization": "Bearer " + this.props.token,
             },
-            body:JSON.stringify(userIDs),
+            body:JSON.stringify(members),
         }).then((response) => {
             console.log("status:", response.status);
             if (response.status == 200) {

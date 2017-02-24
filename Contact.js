@@ -183,42 +183,27 @@ class Contact extends React.Component {
     }
     componentWillMount() {
         var profile = ProfileDB.getInstance();
-        var dbName = `contact_${profile.uid}.db`;
-        var options = {
-            name:dbName,
-            createFromLocation : "~www/contact.db"
-        };
-        var db = SQLite.openDatabase(options,
-                                     function() {
-                                         console.log("db open success");
-                                     },
-                                     function(err) {
-                                         console.log("db open error:", err);
-                                     });
-        ContactDB.getInstance().setDB(db);
-
-        GroupDB.getInstance().setDB(db);
+        var db = ContactDB.getInstance();
+        db.getContacts()
+          .then((contacts)=>{
+              console.log("contacts:", contacts);
+              this.contacts = contacts;
+              RCTDeviceEventEmitter.emit('set_contacts', contacts); 
+              this.setState({
+                  dataSource: this.state.dataSource.cloneWithRows(contacts)
+              })
+          })
+          .then(() => {
+              return db.getDepartments();
+          })
+          .then((depts) => {
+              console.log("departments:", depts);
+              this.departments = depts;
+          })
+          .catch((err) => {
+              console.log("err:", err);
+          });
         
-        ContactDB.getInstance().getContacts()
-                 .then((contacts)=>{
-                     console.log("contacts:", contacts);
-                     this.contacts = contacts;
-                     RCTDeviceEventEmitter.emit('set_contacts', contacts); 
-                     this.setState({
-                         dataSource: this.state.dataSource.cloneWithRows(contacts)
-                     })
-                 })
-                 .then(() => {
-                     return db.getDepartments();
-                 })
-                 .then((depts) => {
-                     console.log("departments:", depts);
-                     this.departments = depts;
-                 })
-                 .catch((err) => {
-                     console.log("err:", err);
-                 });
-    
         var now = new Date();
         now = now.getTime()/1000;
         if (now - 60 - profile.expires > 0) {
@@ -226,7 +211,6 @@ class Contact extends React.Component {
 
             this.refreshToken()
                 .then(() => {
-                    var db = ContactDB.getInstance();
                     return db.getSyncKey();
                 }).then((syncKey) => {
                     this.syncContact(syncKey);
@@ -235,7 +219,6 @@ class Contact extends React.Component {
                     alert(error);
                 });
         } else {
-            var db = ContactDB.getInstance();
             db.getSyncKey()
               .then((syncKey)=> {
                   this.syncContact(syncKey);

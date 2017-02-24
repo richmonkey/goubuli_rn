@@ -37,6 +37,7 @@ import {setConversation} from './chat/actions';
 
 import ProfileDB from './model/ProfileDB';
 import GroupDB from './group/GroupDB';
+import ContactDB from './model/ContactDB';
 
 import Authentication from "./Authentication";
 import Login from "./Login";
@@ -303,15 +304,33 @@ var app = {
     handleGroupNotification: function(msg) {
         console.log("group notification:", msg);
         var obj = JSON.parse(msg);
-
+        
+        var db = GroupDB.getInstance();
+        var notification = "";
         if (obj.create) {
-            var db = GroupDB.getInstance();
             db.insertGroup({id:obj.create.group_id,
                             name:obj.create.name,
                             master:obj.create.master,
                             timestamp:obj.create.timestamp,
                             members:obj.create.members});
+
+            if (obj.create.master == this.uid) {
+                notification = `您创建了${obj.create.name}群组`;
+            } else {
+                notification = `您加入了${obj.create.name}群组`;
+            }
+        } else if (obj.add_member) {
+            db.addGroupMember(obj.add_member.group_id, obj.add_member.member_id);
+            notification = `${obj.add_member.name}加入群`;
+        } else if (obj.quit_group) {
+            db.removeGroupMember(obj.quit_group.group_id, obj.quit_group.member_id);
+            notification = `${obj.quit_group.name}离开群`;
+        } else if (obj.disband) {
+            db.disbandGroup(obj.disband.group_id);
+            notification = "群组已解散";
         }
+        
+        console.log("group notification:", notification);
     },
 
     handleConnectivityChange: function(reach) {
@@ -327,6 +346,78 @@ var app = {
         }
     },
 
+
+    runApp: function(profile) {
+        this.store.dispatch({type:"set_profile", profile:profile});
+        this.uid = profile.uid;
+
+        var dbName = `contact_${profile.uid}.db`;
+        var options = {
+            name:dbName,
+            createFromLocation : "~www/contact.db"
+        };
+        var db = SQLite.openDatabase(options,
+                                     function() {
+                                         console.log("db open success");
+                                     },
+                                     function(err) {
+                                         console.log("db open error:", err);
+                                     });
+        ContactDB.getInstance().setDB(db);
+        GroupDB.getInstance().setDB(db);
+
+
+        dbName = `gobelieve_${profile.uid}.db`;
+        options = {
+            name:dbName,
+            createFromLocation : "~www/gobelieve.db"
+        };
+        db = SQLite.openDatabase(options,
+                                 function() {
+                                     console.log("db open success");
+                                 },
+                                 function(err) {
+                                     console.log("db open error:", err);
+                                 });
+        PeerMessageDB.getInstance().setDB(db);
+        GroupMessageDB.getInstance().setDB(db);
+        
+        
+        Navigation.startTabBasedApp({
+            tabs: [
+                {
+                    screen: 'app.Conversation',
+                    icon: require("./Images/tabbar_chats.png"),
+                    label:"对话",
+                    title:"对话",
+                    navigatorStyle: {
+                        navBarBackgroundColor: '#4dbce9',
+                        navBarTextColor: '#ffff00',
+                        navBarSubtitleTextColor: '#ff0000',
+                        navBarButtonColor: '#ffffff',
+                        statusBarTextColorScheme: 'light'
+                    },
+                },
+                {
+                    screen: 'app.Contact',
+                    icon: require("./Images/tabbar_contacts.png"),
+                    label:"联系人",
+                    title:"联系人",
+                    navigatorStyle: {
+                        navBarBackgroundColor: '#4dbce9',
+                        navBarTextColor: '#ffff00',
+                        navBarSubtitleTextColor: '#ff0000',
+                        navBarButtonColor: '#ffffff',
+                        statusBarTextColorScheme: 'light'
+                    },
+                }
+            ],
+            passProps: {
+                app:this
+            }
+        });
+    },
+    
     startApp: function() {
         this.store = createStore(appReducer);
         AppState.addEventListener('change', this.handleAppStateChange.bind(this));
@@ -357,45 +448,9 @@ var app = {
                     }
                 });
             } else {
-                this.store.dispatch({type:"set_profile", profile:o});
-                
-                Navigation.startTabBasedApp({
-                    tabs: [
-                        {
-                            screen: 'app.Conversation',
-                            icon: require("./Images/tabbar_chats.png"),
-                            label:"对话",
-                            title:"对话",
-                            navigatorStyle: {
-                                navBarBackgroundColor: '#4dbce9',
-                                navBarTextColor: '#ffff00',
-                                navBarSubtitleTextColor: '#ff0000',
-                                navBarButtonColor: '#ffffff',
-                                statusBarTextColorScheme: 'light'
-                            },
-                        },
-                        {
-                            screen: 'app.Contact',
-                            icon: require("./Images/tabbar_contacts.png"),
-                            label:"联系人",
-                            title:"联系人",
-                            navigatorStyle: {
-                                navBarBackgroundColor: '#4dbce9',
-                                navBarTextColor: '#ffff00',
-                                navBarSubtitleTextColor: '#ff0000',
-                                navBarButtonColor: '#ffffff',
-                                statusBarTextColorScheme: 'light'
-                            },
-                        }
-                    ],
-                    passProps: {
-                        app:this
-                    }
-                });
+                this.runApp(o);
             }
         });
-        
-    
     },
 }
 

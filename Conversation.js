@@ -22,6 +22,7 @@ var IMService = require("./chat/im");
 import ProfileDB from "./model/ProfileDB";
 import PeerMessageDB from './chat/PeerMessageDB';
 import GroupMessageDB from './chat/GroupMessageDB';
+import GroupDB from './group/GroupDB';
 
 const CONVERSATION_PEER = "peer";
 const CONVERSATION_GROUP = "group";
@@ -93,21 +94,6 @@ class Conversation extends React.Component {
             this.props.dispatch(setConversations(convs));
         });
         
-        var dbName = `gobelieve_${profile.uid}.db`;
-        var options = {
-            name:dbName,
-            createFromLocation : "~www/gobelieve.db"
-        };
-        var db = SQLite.openDatabase(options,
-                                     function() {
-                                         console.log("db open success");
-                                     },
-                                     function(err) {
-                                         console.log("db open error:", err);
-                                     });
-        PeerMessageDB.getInstance().setDB(db);
-        GroupMessageDB.getInstance().setDB(db);
-        
         var im = IMService.instance;
         im.accessToken = profile.gobelieveToken;
         im.start();
@@ -119,6 +105,8 @@ class Conversation extends React.Component {
         
         var db = PeerMessageDB.getInstance();
         var profile = ProfileDB.getInstance();
+
+
         var p1 = db.getConversations()
                    .then((messages) => {
                        var convs = [];
@@ -198,26 +186,41 @@ class Conversation extends React.Component {
 
                        console.log("conversations:", convs);
                        return convs
-                   });
+                   })
+                
 
-        Promise.all([p1, p2]).then((results) => {
-            var convs = results[0].concat(results[1]);
-            convs = convs.map((conv)=> {
-                if (conv.type == CONVERSATION_GROUP) {
-                    return conv;
-                }
-                var c = this.contacts.find((c)=> {
-                    return (c.id == conv.peer);
-                })
-                if (c) {
-                    conv.name = c.name;
-                }
-                return conv;
-            });
-            this.props.dispatch(setConversations(convs));
-        }).catch((err) => {
-            
-        })
+        var groupDB = GroupDB.getInstance();
+        groupDB.getGroups()
+               .then((groups) => {
+                   this.groups = groups;
+               });
+        
+        Promise.all([p1, p2])
+               .then((results) => {
+                   var convs = results[0].concat(results[1]);
+                   convs = convs.map((conv)=> {
+                       if (conv.type == CONVERSATION_GROUP) {
+                           var group = this.groups.find((group)=> {
+                               return group.id == conv.groupID;
+                           });
+                           if (group) {
+                               conv.name = group.name;
+                           }
+
+                       } else if (conv.type == CONVERSATION_PEER) {
+                           var c = this.contacts.find((c)=> {
+                               return (c.id == conv.peer);
+                           })
+                           if (c) {
+                               conv.name = c.name;
+                           }
+                       }
+                       return conv;
+                   });
+                   this.props.dispatch(setConversations(convs));
+               }).catch((err) => {
+                   
+               });
     }
 
     componetWillUnmount() {

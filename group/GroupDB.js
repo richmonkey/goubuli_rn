@@ -58,7 +58,27 @@ export default class GroupDB {
         });
     }
 
-
+    getGroups() {
+        var self = this;
+        var p = new Promise(function(resolve, reject) {
+            self.db.executeSql('SELECT g.id, g.name, g.master, g.timestamp FROM `group` as g',
+                               [],
+                               function(result) {
+                                   var groups = [];
+                                   for (var i = 0; i < result.rows.length; i++) {
+                                       var row = result.rows.item(i);
+                                       console.log("111group row:", row.id, row.name);
+                                       groups.push(row);
+                                   }
+                                   resolve(groups);
+                               },
+                               function(error) {
+                                   reject(error);
+                               });
+        });
+        return p;
+    }
+    
     getGroup(groupID) {
         var self = this;
         var p = new Promise(function(resolve, reject) {
@@ -85,6 +105,40 @@ export default class GroupDB {
                             });
         });
         return p;
+    }
+
+    addGroupMember(groupID, memberID) {
+        var self = this;
+        var p = new Promise(function(resolve, reject) {
+            self.db.executeSql('INSERT INTO group_member (group_id, member_id) VALUES(?, ?)',
+                               [groupID, memberID],
+                               function(result) {
+                                   resolve();
+                               },
+                               function(error) {
+                                   reject(error);
+                               });
+        });
+        return p;        
+    }
+
+    removeGroupMember(groupID, memberID) {
+        var self = this;
+        var p = new Promise(function(resolve, reject) {
+            self.db.executeSql('DELETE FROM group_member WHERE group_id=? AND member_id=?',
+                               [groupID, memberID],
+                               function(result) {
+                                   resolve();
+                               },
+                               function(error) {
+                                   reject(error);
+                               });
+        });
+        return p;                
+    }
+
+    disbandGroup(groupID) {
+        
     }
 
 }
