@@ -177,6 +177,23 @@ class Conversation extends React.Component {
                                conv.content = "语音"
                            } else if (msgObj.location) {
                                conv.content = "位置";
+                           } else if (msgObj.notification) {
+                               var notification = "";
+                               var n = JSON.parse(msgObj.notification);
+                               if (n.create) {
+                                   if (n.create.master == this.props.uid) {
+                                       notification = `您创建了${n.create.name}群组`;
+                                   } else {
+                                       notification = `您加入了${n.create.name}群组`;
+                                   }
+                               } else if (n.add_member) {
+                                   notification = `${n.add_member.name}加入群`;
+                               } else if (n.quit_group) {
+                                   notification = `${n.quit_group.name}离开群`;
+                               } else if (n.disband) {
+                                   notification = "群组已解散";
+                               }
+                               conv.content = notification;
                            } else {
                                conv.content = "";
                            }

@@ -1,4 +1,4 @@
-import BaseGroupChat from "./chat/GroupChat.js"
+import {BaseGroupChat} from "./chat/GroupChat.js"
 import {connect} from 'react-redux'
 
 import GroupDB from './group/GroupDB'
@@ -12,6 +12,14 @@ class GroupChat extends BaseGroupChat {
                 showAsAction: 'ifRoom' 
             },
         ]
+    };
+
+    static navigatorStyle = {
+        navBarBackgroundColor: '#4dbce9',
+        navBarTextColor: '#ffff00',
+        navBarSubtitleTextColor: '#ff0000',
+        navBarButtonColor: '#ffffff',
+        statusBarTextColorScheme: 'light',
     };
     
     constructor(props) {

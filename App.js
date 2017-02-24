@@ -307,7 +307,11 @@ var app = {
         
         var db = GroupDB.getInstance();
         var notification = "";
+        var timestamp = 0;
+        var groupID = 0;
         if (obj.create) {
+            groupID = obj.create.group_id;
+            timestamp = obj.create.timestamp;
             db.insertGroup({id:obj.create.group_id,
                             name:obj.create.name,
                             master:obj.create.master,
@@ -320,17 +324,92 @@ var app = {
                 notification = `您加入了${obj.create.name}群组`;
             }
         } else if (obj.add_member) {
+            groupID = obj.add_member.group_id;
+            timestamp = obj.add_member.timestamp;
             db.addGroupMember(obj.add_member.group_id, obj.add_member.member_id);
             notification = `${obj.add_member.name}加入群`;
         } else if (obj.quit_group) {
+            groupID = obj.quit_group.group_id;
+            timestamp = obj.quit_group.timestamp;
             db.removeGroupMember(obj.quit_group.group_id, obj.quit_group.member_id);
             notification = `${obj.quit_group.name}离开群`;
         } else if (obj.disband) {
+            groupID = obj.disband.group_id;
+            timestamp = obj.disband.timestamp;
             db.disbandGroup(obj.disband.group_id);
             notification = "群组已解散";
         }
         
         console.log("group notification:", notification);
+
+
+        var message = {};
+        message.groupID = groupID;
+        message.sender = 0;
+        message.receiver = groupID;
+        message.flags = 0;
+        message.notification = notification;
+        message.uuid = "";
+        message.timestamp = timestamp;
+        message.content = JSON.stringify({uuid:"", notification:msg});
+        
+        var t = new Date();
+        t.setTime(message.timestamp*1000);
+        message.createdAt = t;
+        message.user = {
+            _id: 0
+        }
+        message.outgoing = false;
+        
+        var db = GroupMessageDB.getInstance();
+        db.insertMessage(message,
+                         function(rowid) {
+                             message.id = rowid;
+                             message._id = rowid;
+                             RCTDeviceEventEmitter.emit('group_message', message);
+                         },
+                         function(err) {
+                             
+                         });
+
+        var cid =  "g_" + message.receiver;
+        var state = this.store.getState();
+        console.log("state conversations:", state.conversations);
+        var index = -1;        
+        for (var i in state.conversations) {
+            var conv = state.conversations[i];
+            if (conv.cid == cid) {
+                index = i;
+                break;
+            }
+        }
+
+        var conv;
+        if (index != -1) {
+            var c = state.conversations[index];
+            var newConv = Object.assign({}, c);
+            if (cid == message.sender) {
+                newConv.unread = conv.unread + 1;
+            }
+            conv = newConv;
+        } else {
+            conv = {
+                id:cid,
+                cid:cid,
+                name:cid,
+                unread:0,
+            };
+            if (cid == message.sender) {
+                conv.unread = 1;
+            }
+        }
+
+        conv.message = message;
+        conv.timestamp = message.timestamp;
+        conv.content = notification;
+        console.log("new conv:", newConv);
+        this.store.dispatch(updateConversation(conv, index));
+
     },
 
     handleConnectivityChange: function(reach) {
