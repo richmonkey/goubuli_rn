@@ -11,6 +11,7 @@ import {
     ActionSheetIOS,
     NetInfo,
     View,
+    Platform,
     AsyncStorage
 } from 'react-native';
 
@@ -198,6 +199,10 @@ export default class Authentication extends Component {
             text = `获取验证码${t}`;
         }
 
+        var inputHeight = Platform.select({
+            ios:35,
+            android:45
+        });
         
         return (
             <View>
@@ -213,6 +218,7 @@ export default class Authentication extends Component {
                         marginRight:8,
                         borderWidth: 0.5,
                         borderColor: '#0f0f0f',
+                        height:inputHeight,
                     }}
                     underlineColorAndroid='rgba(0,0,0,0)'
                     keyboardType="numeric"
@@ -236,6 +242,7 @@ export default class Authentication extends Component {
                         marginRight:8,
                         borderWidth: 0.5,
                         borderColor: '#0f0f0f',
+                        height:inputHeight,                        
                     }}
                     underlineColorAndroid='rgba(0,0,0,0)'
                     keyboardType="numeric"
