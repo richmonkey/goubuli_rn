@@ -17,6 +17,14 @@ import Spinner from 'react-native-loading-spinner-overlay';
 import {API_URL} from './config';
 
 class GroupSetting extends Component {
+    static navigatorStyle = {
+        navBarBackgroundColor: '#4dbce9',
+        navBarTextColor: '#ffff00',
+        navBarSubtitleTextColor: '#ff0000',
+        navBarButtonColor: '#ffffff',
+        statusBarTextColorScheme: 'light',
+    };
+    
     constructor(props) {
         super(props);
 
@@ -217,6 +225,7 @@ class GroupSetting extends Component {
 const styles = StyleSheet.create({
     container: {
         backgroundColor: '#F5FCFF',
+        marginTop: 10,
     },
 
     block: {

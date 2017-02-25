@@ -261,6 +261,8 @@ class Contact extends React.Component {
                 passProps:{
                     sender:uid,
                     receiver:peer,
+                    peer:peer,
+                    name:contact.name,
                     token:token
                 },
             });

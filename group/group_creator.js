@@ -32,6 +32,14 @@ class GroupCreator extends Component {
             },
         ]
     };
+
+    static navigatorStyle = {
+        navBarBackgroundColor: '#4dbce9',
+        navBarTextColor: '#ffff00',
+        navBarSubtitleTextColor: '#ff0000',
+        navBarButtonColor: '#ffffff',
+        statusBarTextColorScheme: 'light',
+    };
     
     constructor(props) {
         super(props);
@@ -124,6 +132,8 @@ class GroupCreator extends Component {
                 passProps:{
                     sender:this.props.profile.uid,
                     receiver:groupID,
+                    groupID:groupID,
+                    name:topic,
                     token:this.props.profile.gobelieveToken,
                 },
             });   
@@ -176,6 +186,15 @@ class GroupSelectMember extends Component {
             },
         ]
     };
+
+    static navigatorStyle = {
+        navBarBackgroundColor: '#4dbce9',
+        navBarTextColor: '#ffff00',
+        navBarSubtitleTextColor: '#ff0000',
+        navBarButtonColor: '#ffffff',
+        statusBarTextColorScheme: 'light',
+    };
+
     
     constructor(props) {
         super(props);

@@ -15,13 +15,20 @@ import RCTDeviceEventEmitter from 'RCTDeviceEventEmitter';
 import moment from 'moment/min/moment-with-locales.min';
 var SQLite = require('react-native-sqlite-storage');
 
-import {setConversations, setUnread} from './chat/actions'
 import {setMessages, addMessage, ackMessage} from './chat/actions'
-import {addConversation, updateConversation} from "./chat/actions";
-import {setConversation} from './chat/actions';
+
+import {
+    setConversations,
+    setUnread,
+    addConversation,
+    updateConversation
+} from "./actions";
+import {setConversation} from './actions';
+import {MESSAGE_FLAG_ACK, MESSAGE_FLAG_FAILURE} from './chat/IMessage';
 
 var IMService = require("./chat/im");
 
+import ConversationDB from './model/ConversationDB';
 import ProfileDB from "./model/ProfileDB";
 import PeerMessageDB from './chat/PeerMessageDB';
 import GroupMessageDB from './chat/GroupMessageDB';
@@ -126,6 +133,7 @@ class Conversation extends React.Component {
             var newConv = Object.assign({}, c);
             if (profile.uid != message.sender) {
                 newConv.unread = newConv.unread + 1;
+                ConversationDB.getInstance().setUnread(newConv.cid, newConv.unread);
             }
             conv = newConv;
         } else {
@@ -146,6 +154,7 @@ class Conversation extends React.Component {
             }
             if (profile.uid != message.sender) {
                 conv.unread = 1;
+                ConversationDB.getInstance().setUnread(conv.cid, conv.unread);
             }
         }
 
@@ -169,18 +178,17 @@ class Conversation extends React.Component {
 
     handleMessageACK(msg) {
         console.log("handle message ack");
-        var conv = this.props.conversation;
-        if (!conv) {
-            return;
-        }
-        var cid = conv.cid;
-        if ("p_" + msg.receiver != cid) {
-            return;
-        }
-
-        this.props.dispatch(ackMessage(msg.id));
+        var db = PeerMessageDB.getInstance();
+        db.updateFlags(msg.id, MESSAGE_FLAG_ACK);
+        RCTDeviceEventEmitter.emit('peer_message_ack', msg);
     }
 
+    handleMessageFailure(msg) {
+        var db = PeerMessageDB.getInstance();
+        db.updateFlags(msg.id, MESSAGE_FLAG_FAILURE);
+        RCTDeviceEventEmitter.emit('peer_message_failure', msg);
+    }
+    
     handleGroupMessage(message) {
         console.log("handle group message:", message, msgObj);
         var profile = ProfileDB.getInstance();
@@ -230,6 +238,7 @@ class Conversation extends React.Component {
             var newConv = Object.assign({}, c);
             if (profile.uid != message.sender) {
                 newConv.unread = newConv.unread + 1;
+                ConversationDB.getInstance().setUnread(newConv.cid, newConv.unread);
             }
             conv = newConv;
         } else {
@@ -252,6 +261,7 @@ class Conversation extends React.Component {
        
             if (profile.uid != message.sender) {
                 conv.unread = 1;
+                ConversationDB.getInstance().setUnread(conv.cid, conv.unread);
             }
         }
 
@@ -276,16 +286,15 @@ class Conversation extends React.Component {
 
     handleGroupMessageACK(msg) {
         console.log("handle group message ack");
-        var conv = this.props.conversation;
-        if (!conv) {
-            return;
-        }
-        var cid = conv.cid;
-        if ("g_" + msg.receiver != cid) {
-            return;
-        }
+        var db = GroupMessageDB.getInstance();
+        db.updateFlags(msg.id, MESSAGE_FLAG_ACK);
+        RCTDeviceEventEmitter.emit('group_message_ack', msg);
+    }
 
-        this.props.dispatch(ackMessage(msg.id));
+    handleGroupMessageFailure(msg) {
+        var db = GroupMessageDB.getInstance();
+        db.updateFlags(msg.id, MESSAGE_FLAG_FAILURE);
+        RCTDeviceEventEmitter.emit('group_message_failure', msg);
     }
 
     handleGroupNotification(msg) {
@@ -343,7 +352,6 @@ class Conversation extends React.Component {
         }
         
         console.log("group notification:", notification);
-
 
         var message = {};
         message.groupID = groupID;
@@ -518,13 +526,11 @@ class Conversation extends React.Component {
         
 
         var groupDB = GroupDB.getInstance();
-        groupDB.getGroups()
-               .then((groups) => {
-                   this.groups = groups;
-               });
+        var p3 = groupDB.getGroups();
         
-        Promise.all([p1, p2])
+        Promise.all([p1, p2, p3])
                .then((results) => {
+                   this.groups = results[2];
                    var convs = results[0].concat(results[1]);
                    convs = convs.map((conv)=> {
                        if (conv.type == CONVERSATION_GROUP) {
@@ -545,9 +551,33 @@ class Conversation extends React.Component {
                        }
                        return conv;
                    });
+
+                   //order by timestamp descend
+                   convs = convs.sort((a, b) => {
+                       if (a.timestamp < b.timestamp) {
+                           return 1;
+                       } else if (a.timestamp == b.timestamp) {
+                           return 0;
+                       } else {
+                           return -1;
+                       }
+                   })
+                   return convs;
+               }).then((convs) => {
+                   var ps = convs.map((conv)=> {
+                       return ConversationDB.getInstance().getUnread(conv.cid)
+                   });
+                   return Promise.all([convs].concat(ps));
+               }).then((results) => {
+                   var convs = results[0];
+                   for (var i = 0; i < convs.length; i++) {
+                       var conv = convs[i];
+                       conv.unread = results[i+1];
+                   }
                    this.props.dispatch(setConversations(convs));
                }).catch((err) => {
                    
+                   console.log("err:", err);
                });
         
     }
@@ -623,6 +653,8 @@ class Conversation extends React.Component {
                     passProps:{
                         sender:profile.uid,
                         receiver:uid,
+                        peer:uid,
+                        name:conv.name,
                         token:profile.gobelieveToken,
                     },
                 });
@@ -637,6 +669,8 @@ class Conversation extends React.Component {
                     passProps:{
                         sender:profile.uid,
                         receiver:gid,
+                        groupID:gid,
+                        name:conv.name,
                         token:profile.gobelieveToken,
                         contacts:self.contacts,
                     },
@@ -732,7 +766,6 @@ class Conversation extends React.Component {
 Conversation = connect(function(state){
     return {
         conversations:state.conversations,
-        conversation:state.conversation,
     };
 })(Conversation);
 

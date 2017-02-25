@@ -1,4 +1,4 @@
-package com.app;
+package com.beetle.goubuli;
 
 import com.reactnativenavigation.controllers.SplashActivity;
 

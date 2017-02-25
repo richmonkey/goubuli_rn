@@ -1086,7 +1086,7 @@ export default class Chat extends React.Component {
             return (
                 <ActionSheet ref={component => this._actionSheetRef = component}>
                     <View
-                        style={{marginTop:NAVIGATIONBAR_HEIGHT, flex:1}}
+                        style={{marginTop:NAVIGATIONBAR_HEIGHT, flex:1, backgroundColor:"white"}}
                         onLayout={onViewLayout}>
                         {this.renderMessages()}
                         {this.renderRecordView()}
@@ -1115,7 +1115,7 @@ export default class Chat extends React.Component {
             });
         };
         return (
-            <View style={{marginTop:NAVIGATIONBAR_HEIGHT, flex:1}}
+            <View style={{marginTop:NAVIGATIONBAR_HEIGHT, flex:1, backgroundColor:"white"}}
                   onLayout={onViewLayout} >
             </View>
         );

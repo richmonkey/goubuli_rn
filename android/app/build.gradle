@@ -87,11 +87,11 @@ android {
     buildToolsVersion "23.0.1"
 
     defaultConfig {
-        applicationId "com.app"
+        applicationId "com.beetle.goubuli"
         minSdkVersion 16
         targetSdkVersion 22
-        versionCode 1
-        versionName "1.0"
+        versionCode 11
+        versionName "1.1"
         ndk {
             abiFilters "armeabi-v7a", "x86"
         }
@@ -104,8 +104,20 @@ android {
             include "armeabi-v7a", "x86"
         }
     }
+
+
+    signingConfigs {
+        myConfig{
+            storeFile file("gradle.keystore")
+            storePassword "gradle"
+            keyAlias "gradle"
+            keyPassword "gradle"
+        }
+    }
+
     buildTypes {
         release {
+            signingConfig  signingConfigs.myConfig
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }

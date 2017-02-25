@@ -31,9 +31,6 @@ SQLite.enablePromise(false);
 
 import PeerMessageDB from './chat/PeerMessageDB';
 import GroupMessageDB from './chat/GroupMessageDB';
-import {setMessages, addMessage, ackMessage} from './chat/actions'
-import {addConversation, updateConversation} from "./chat/actions";
-import {setConversation} from './chat/actions';
 
 import ProfileDB from './model/ProfileDB';
 import GroupDB from './group/GroupDB';
@@ -45,8 +42,9 @@ import Conversation from './Conversation';
 import Contact from './Contact';
 import Department from './Department';
 
-import PeerChat from "./chat/PeerChat";
+
 import Photo from './chat/Photo';
+import PeerChat from "./PeerChat";
 import GroupChat from "./GroupChat";
 
 import {GroupCreator, GroupSelectMember} from "./group/group_creator";
@@ -56,15 +54,15 @@ import GroupMemberAdd from './group/group_member_add';
 import GroupMemberRemove from './group/group_member_remove';
 
 
-import {conversationsReducer, messagesReducer, conversationReducer}  from './chat/reducers';
-import {profileReducer} from './reducers';
+import {messagesReducer}  from './chat/reducers';
+import {conversationsReducer,conversationReducer, profileReducer} from './reducers';
 import {groupReducer} from './group/actions';
 
 var IMService = require("./chat/im");
 var im = IMService.instance;
 
 
-//do not use combineReducers ignore init state of createStore
+//do not use combineReducers which ignore init state of createStore
 function appReducer(state={}, action) {
     return {
         conversations:conversationsReducer(state.conversations, action),

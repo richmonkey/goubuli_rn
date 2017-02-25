@@ -1,4 +1,4 @@
-package com.app;
+package com.beetle.goubuli;
 
 import android.app.Application;
 import android.support.annotation.NonNull;

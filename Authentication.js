@@ -27,12 +27,21 @@ export default class Authentication extends Component {
         this.state = {
             number:"",
             code:"",
+            receivingSMS:false,//正在接受短信
+            tick:0,//获取短信验证码计时
             spinnerVisible:false
         };
     }
     
     componentDidMount() {
         
+    }
+
+    
+    componentWillUnmount() {
+        if (this.timer) {
+            clearInterval(this.timer);
+        }
     }
 
     handleLogin() {
@@ -125,6 +134,10 @@ export default class Authentication extends Component {
             alert("请填写手机号码");
             return;
         }
+        if (this.state.receivingSMS) {
+            return;
+        }
+        
         var url = API_URL + `/verify_code?zone=86&number=${this.state.number}`;
         console.log("url:", url);
 
@@ -152,6 +165,21 @@ export default class Authentication extends Component {
                 var code = responseJson.code;
                 console.log("code:", code, "number:", this.state.number);
                 this.number = this.state.number;
+
+                this.setState({receivingSMS:true, tick:0});
+
+                this.timer = setInterval(() => {
+                    var t = this.state.tick + 1;
+                    this.setState({
+                        tick:t
+                    });
+
+                    if (t > 60) {
+                        clearInterval(this.timer);
+                        this.timer = undefined;
+                        this.setState({receivingSMS:false, tick:0});
+                    }
+                }, 1000);
             } else {
                 console.log(responseJson.meta.message);
             }
@@ -164,30 +192,38 @@ export default class Authentication extends Component {
     }
     
     render() {
+        var text = "获取验证码";
+        if (this.state.receivingSMS) {
+            var t = Math.max(0, 60 - this.state.tick);
+            text = `获取验证码${t}`;
+        }
+
+        
         return (
             <View>
                 <Spinner visible={this.state.spinnerVisible} />
+
                 <TextInput
                     onChangeText={(text) => {
                             this.setState({number:text});
                         }}
                     style={{    
-                        marginTop:44,
+                        marginTop:40,
                         marginLeft:8,
                         marginRight:8,
                         borderWidth: 0.5,
                         borderColor: '#0f0f0f',
-                        height:35,
                     }}
+                    underlineColorAndroid='rgba(0,0,0,0)'
                     keyboardType="numeric"
                     placeholder="手机号码"
                     value={this.state.number}
                 />
 
                 <TouchableHighlight underlayColor='ghostwhite'
-                                    style={{width:100, alignItems: 'center', alignSelf:'center', marginTop:12}}
+                                    style={{alignItems: 'center', alignSelf:'center', marginTop:12}}
                                     onPress={this.onGetVerifyCode.bind(this)} >
-                    <Text style={{padding:8}}>获取验证码</Text>
+                    <Text style={{padding:8}}>{text}</Text>
                 </TouchableHighlight>
 
                 <TextInput
@@ -195,21 +231,20 @@ export default class Authentication extends Component {
                             this.setState({code:text});
                         }}
                     style={{    
-                        marginTop:44,
+                        marginTop:40,
                         marginLeft:8,
                         marginRight:8,
                         borderWidth: 0.5,
                         borderColor: '#0f0f0f',
-                        height:35,
                     }}
+                    underlineColorAndroid='rgba(0,0,0,0)'
                     keyboardType="numeric"
                     placeholder="验证码"
                     value={this.state.code}
                 />
 
                 <TouchableHighlight underlayColor='ghostwhite'
-                                    style={{width:100,
-                                            alignItems: 'center',
+                                    style={{alignItems: 'center',
                                             alignSelf:'center',
                                             marginTop:12}}
                                     onPress={this.handleLogin.bind(this)} >

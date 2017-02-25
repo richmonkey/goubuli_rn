@@ -93,7 +93,9 @@ class Department extends React.Component {
                     passProps:{
                         sender:uid,
                         receiver:node.contactID,
-                        token:token
+                        peer:node.contactID,
+                        name:node.name,
+                        token:token,
                     },
                 });
             } else if (node.type == NODE_DEPARTMENT) {
