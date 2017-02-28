@@ -478,7 +478,7 @@ export default class Chat extends React.Component {
         
         var self = this;
 
-        var p = this.saveMessage();
+        var p = this.saveMessage(message);
         p.then((rowid)=> {
             console.log("row id:", rowid);
             message.id = rowid;
@@ -550,20 +550,30 @@ export default class Chat extends React.Component {
         });
     }
 
-    
+    onLocation(coordinate) {
+        this.sendLocationImage(coordinate.longitude,
+                               coordinate.latitude);
+    }
 
     handleLocationClick() {
         console.log("locaiton click");
 
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                this.sendLocationImage(position.coords.longitude,
-                                       position.coords.latitude);
-            },
-            (error) => alert(error.message),
-            {enableHighAccuracy: true, timeout: 20000, maximumAge: 1000}
-        );
+        var navigator = this.props.navigator;
 
+        navigator.push({
+            title:"位置",
+            screen:"chat.LocationPicker",
+            passProps:{
+                onLocation:this.onLocation.bind(this),
+            },
+            navigatorStyle:{
+                tabBarHidden:true
+            },
+            navigatorStyle: {
+                statusBarHideWithNavBar:true,
+                statusBarHidden:true,
+            },
+        });
     }
 
     onMessageLongPress(message) {

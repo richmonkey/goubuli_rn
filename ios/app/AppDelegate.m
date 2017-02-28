@@ -26,7 +26,7 @@
 
   jsCodeLocation = [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index.ios" fallbackResource:nil];
 
-  
+    jsCodeLocation = [NSURL URLWithString:@"http://192.168.0.101:8081/index.ios.bundle"];
   
   // **********************************************
   // *** DON'T MISS: THIS IS HOW WE BOOTSTRAP *****

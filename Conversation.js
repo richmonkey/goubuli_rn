@@ -693,7 +693,7 @@ class Conversation extends React.Component {
                 var uid = parseInt(conv.cid.substr(2));
                 console.log("uid:", profile.uid, uid);
                 navigator.push({
-                    title:"Chat",
+                    title:conv.name,
                     screen:"chat.PeerChat",
                     navigatorStyle:{
                         tabBarHidden:true
@@ -709,7 +709,7 @@ class Conversation extends React.Component {
             } else if (conv.cid.startsWith("g_")) {
                 var gid = parseInt(conv.cid.substr(2));
                 navigator.push({
-                    title:"Chat",
+                    title:conv.name,
                     screen:"chat.GroupChat",
                     navigatorStyle:{
                         tabBarHidden:true

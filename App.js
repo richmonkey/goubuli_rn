@@ -43,6 +43,7 @@ import Contact from './Contact';
 import Department from './Department';
 
 
+import LocationPicker from './chat/LocationPicker';
 import Photo from './chat/Photo';
 import PeerChat from "./PeerChat";
 import GroupChat from "./GroupChat";
@@ -87,6 +88,7 @@ var app = {
         Navigation.registerComponent('chat.PeerChat', () => PeerChat, this.store, Provider);
         Navigation.registerComponent('chat.GroupChat', () => GroupChat, this.store, Provider);
         Navigation.registerComponent('chat.Photo', () => Photo, this.store, Provider);
+        Navigation.registerComponent('chat.LocationPicker', () => LocationPicker, this.store, Provider);
 
         Navigation.registerComponent('group.GroupSelectMember', () => GroupSelectMember, this.store, Provider);
         Navigation.registerComponent('group.GroupCreator', () => GroupCreator, this.store, Provider);
