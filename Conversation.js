@@ -7,6 +7,7 @@ import {
     ListView,
     TouchableWithoutFeedback,
     TouchableHighlight,
+    PushNotificationIOS,
 } from 'react-native';
 
 
@@ -34,6 +35,8 @@ import PeerMessageDB from './chat/PeerMessageDB';
 import GroupMessageDB from './chat/GroupMessageDB';
 import GroupDB from './group/GroupDB';
 
+import {SDK_API_URL} from './config';
+
 const CONVERSATION_PEER = "peer";
 const CONVERSATION_GROUP = "group";
       
@@ -60,7 +63,9 @@ class Conversation extends React.Component {
 
         this.uid = 0;
         this.contacts = [];
-
+        this._onRegistered = this._onRegistered.bind(this);
+        this._onRegistrationError = this._onRegistrationError.bind(this);
+        
         this.props.navigator.setOnNavigatorEvent(this.onNavigatorEvent.bind(this));
     }
 
@@ -82,6 +87,38 @@ class Conversation extends React.Component {
             }
         }
     }
+
+    bindDeviceToken(deviceToken) {
+        //bind device token
+        var profile = ProfileDB.getInstance();
+        var token = profile.gobelieveToken
+        var url = SDK_API_URL + "/device/bind";
+        var obj = {"apns_device_token":deviceToken};
+        fetch(url, {
+            method:"POST",  
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                "Authorization": "Bearer " + token,
+            },
+            body:JSON.stringify(obj),
+        }).then((response) => {
+            console.log("bind apns device token status:", response.status);
+        }).catch((error) => {
+            console.log("bind apns device token error:", error);
+        });
+    }
+
+    _onRegistered(r) {
+        console.log("apns device token:", r);
+        var deviceToken = r;
+        this.bindDeviceToken(deviceToken);
+    }
+
+    _onRegistrationError(e) {
+        console.log("register error:", e);
+    }
+
 
     handlePeerMessage(message) {
         console.log("handle peer message:", message, msgObj);
@@ -615,6 +652,12 @@ class Conversation extends React.Component {
         this.expires = profile.expires;
         
         this.loadConversations();
+
+        if (Platform.OS === 'ios') {
+            PushNotificationIOS.addEventListener('register', this._onRegistered);
+            PushNotificationIOS.addEventListener('registrationError', this._onRegistrationError);
+            PushNotificationIOS.requestPermissions();
+        }
     }
 
     componetWillUnmount() {
@@ -623,6 +666,11 @@ class Conversation extends React.Component {
         im.stop();
 
         this.listener.remove();
+        
+        if (Platform.OS === 'ios') {
+            PushNotificationIOS.removeEventListener('register', this._onRegistered);
+            PushNotificationIOS.removeEventListener('registrationError', this._onRegistrationError);
+        }
     }
     
     componentWillReceiveProps(nextProps) {
