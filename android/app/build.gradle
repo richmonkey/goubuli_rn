@@ -144,6 +144,7 @@ android {
 }
 
 dependencies {
+    compile project(':react-native-geocoder')
     compile project(':react-native-permissions')
     compile project(':react-native-navigation')
     compile project(':react-native-maps')

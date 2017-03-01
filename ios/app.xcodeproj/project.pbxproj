@@ -29,6 +29,7 @@
 		6D8EEFB21E642DF600FCEE6C /* libRCTPushNotification.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6D8EEFAF1E642DD900FCEE6C /* libRCTPushNotification.a */; };
 		6DADEB001E6045DE008579C7 /* libART.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6DADEADE1E6045D3008579C7 /* libART.a */; };
 		6DF6D2D11E365DB6003AA63B /* www in Resources */ = {isa = PBXBuildFile; fileRef = 6DF6D2D01E365DB6003AA63B /* www */; };
+		7A018FFA78FD493FA275D43E /* libRNGeocoder.a in Frameworks */ = {isa = PBXBuildFile; fileRef = EB62096106BF47BCBD8AA8C2 /* libRNGeocoder.a */; };
 		832341BD1AAA6AB300B99B32 /* libRCTText.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 832341B51AAA6A8300B99B32 /* libRCTText.a */; };
 		9EEB237D345644B08DCC385D /* libSQLite.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4DC6CDBA9B804368BF24BB5C /* libSQLite.a */; };
 		CA66A568B579479C8D756727 /* libreact-native-amr.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1750F1C5C16C490FBE8095BA /* libreact-native-amr.a */; };
@@ -222,13 +223,6 @@
 			remoteGlobalIDString = 9D23B34F1C767B80008B4819;
 			remoteInfo = ReactNativePermissions;
 		};
-		6D8651721E66AC0C003871A4 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = D04A4622178844C58EF37949 /* RCTAMap.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 9F12EBC61DD30C6600029EAF;
-			remoteInfo = RCTAMap;
-		};
 		6D8EEFAE1E642DD900FCEE6C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 6D8EEFA91E642DD900FCEE6C /* RCTPushNotification.xcodeproj */;
@@ -242,6 +236,13 @@
 			proxyType = 2;
 			remoteGlobalIDString = 3D05745F1DE6004600184BB4;
 			remoteInfo = "RCTPushNotification-tvOS";
+		};
+		6D9F04221E66F123009CB440 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1D65B89C542845BA9B62666D /* RNGeocoder.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = BF8FCF941BFFB184000FCD37;
+			remoteInfo = RNGeocoder;
 		};
 		6DADEADD1E6045D3008579C7 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -350,6 +351,7 @@
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = app/main.m; sourceTree = "<group>"; };
 		146833FF1AC3E56700842450 /* React.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = React.xcodeproj; path = "../node_modules/react-native/React/React.xcodeproj"; sourceTree = "<group>"; };
 		1750F1C5C16C490FBE8095BA /* libreact-native-amr.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = "libreact-native-amr.a"; sourceTree = "<group>"; };
+		1D65B89C542845BA9B62666D /* RNGeocoder.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNGeocoder.xcodeproj; path = "../node_modules/react-native-geocoder/ios/RNGeocoder.xcodeproj"; sourceTree = "<group>"; };
 		1FDB253EE00B4C70B6452FDE /* RCTToast.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RCTToast.xcodeproj; path = "../node_modules/react-native-toast/ios/RCTToast.xcodeproj"; sourceTree = "<group>"; };
 		21037469E66140188A717A1B /* libAirMaps.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libAirMaps.a; sourceTree = "<group>"; };
 		2A7429D4330B4263B4056006 /* libReactNativePermissions.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libReactNativePermissions.a; sourceTree = "<group>"; };
@@ -374,8 +376,8 @@
 		C1578ABF3AED49978E555C11 /* ReactNativePermissions.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = ReactNativePermissions.xcodeproj; path = "../node_modules/react-native-permissions/ReactNativePermissions.xcodeproj"; sourceTree = "<group>"; };
 		C5DD1952420D4B748C7BDEDA /* libReactNativeNavigation.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libReactNativeNavigation.a; sourceTree = "<group>"; };
 		CCE61CB66E3F43E3940C2B79 /* libRCTToast.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRCTToast.a; sourceTree = "<group>"; };
-		D04A4622178844C58EF37949 /* RCTAMap.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RCTAMap.xcodeproj; path = "../node_modules/react-native-smart-amap/RCTAMap/RCTAMap.xcodeproj"; sourceTree = "<group>"; };
 		D9B81AD970EF4EED8E08062D /* react-native-amr.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = "react-native-amr.xcodeproj"; path = "../node_modules/react-native-amr/ios/react-native-amr.xcodeproj"; sourceTree = "<group>"; };
+		EB62096106BF47BCBD8AA8C2 /* libRNGeocoder.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRNGeocoder.a; sourceTree = "<group>"; };
 		EBDE7C51DF9E49D8B0C4C25B /* AirMaps.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = AirMaps.xcodeproj; path = "../node_modules/react-native-maps/ios/AirMaps.xcodeproj"; sourceTree = "<group>"; };
 		F9A485D9AE7D4A62BA2E9B28 /* RNFS.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNFS.xcodeproj; path = "../node_modules/react-native-fs/RNFS.xcodeproj"; sourceTree = "<group>"; };
 		FA231BF88E1A406DA1C0BCA1 /* RNImagePicker.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNImagePicker.xcodeproj; path = "../node_modules/react-native-image-picker/ios/RNImagePicker.xcodeproj"; sourceTree = "<group>"; };
@@ -417,6 +419,7 @@
 				DC27E5212F524A0A81E53760 /* libAirMaps.a in Frameworks */,
 				0D0E1E39834D4B429CE82667 /* libReactNativeNavigation.a in Frameworks */,
 				29590D24F4AF48639EAA2890 /* libReactNativePermissions.a in Frameworks */,
+				7A018FFA78FD493FA275D43E /* libRNGeocoder.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -548,19 +551,19 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		6D86516C1E66AC0C003871A4 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				6D8651731E66AC0C003871A4 /* libRCTAMap.a */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		6D8EEFAA1E642DD900FCEE6C /* Products */ = {
 			isa = PBXGroup;
 			children = (
 				6D8EEFAF1E642DD900FCEE6C /* libRCTPushNotification.a */,
 				6D8EEFB11E642DD900FCEE6C /* libRCTPushNotification-tvOS.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		6D9F03FD1E66F123009CB440 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				6D9F04231E66F123009CB440 /* libRNGeocoder.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -680,7 +683,7 @@
 				EBDE7C51DF9E49D8B0C4C25B /* AirMaps.xcodeproj */,
 				44C9E5B8F6E04829B763D70A /* ReactNativeNavigation.xcodeproj */,
 				C1578ABF3AED49978E555C11 /* ReactNativePermissions.xcodeproj */,
-				D04A4622178844C58EF37949 /* RCTAMap.xcodeproj */,
+				1D65B89C542845BA9B62666D /* RNGeocoder.xcodeproj */,
 			);
 			name = Libraries;
 			sourceTree = "<group>";
@@ -820,10 +823,6 @@
 					ProjectRef = 00C302A71ABCB8CE00DB3ED1 /* RCTActionSheet.xcodeproj */;
 				},
 				{
-					ProductGroup = 6D86516C1E66AC0C003871A4 /* Products */;
-					ProjectRef = D04A4622178844C58EF37949 /* RCTAMap.xcodeproj */;
-				},
-				{
 					ProductGroup = 5E91572E1DD0AC6500FF2AA8 /* Products */;
 					ProjectRef = 5E91572D1DD0AC6500FF2AA8 /* RCTAnimation.xcodeproj */;
 				},
@@ -890,6 +889,10 @@
 				{
 					ProductGroup = 6DF6D3ED1E39D0C3003AA63B /* Products */;
 					ProjectRef = F9A485D9AE7D4A62BA2E9B28 /* RNFS.xcodeproj */;
+				},
+				{
+					ProductGroup = 6D9F03FD1E66F123009CB440 /* Products */;
+					ProjectRef = 1D65B89C542845BA9B62666D /* RNGeocoder.xcodeproj */;
 				},
 				{
 					ProductGroup = 6DF6D2021E34ED34003AA63B /* Products */;
@@ -1081,13 +1084,6 @@
 			remoteRef = 6D8651351E66A37C003871A4 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		6D8651731E66AC0C003871A4 /* libRCTAMap.a */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = libRCTAMap.a;
-			remoteRef = 6D8651721E66AC0C003871A4 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
 		6D8EEFAF1E642DD900FCEE6C /* libRCTPushNotification.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
@@ -1100,6 +1096,13 @@
 			fileType = archive.ar;
 			path = "libRCTPushNotification-tvOS.a";
 			remoteRef = 6D8EEFB01E642DD900FCEE6C /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		6D9F04231E66F123009CB440 /* libRNGeocoder.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libRNGeocoder.a;
+			remoteRef = 6D9F04221E66F123009CB440 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		6DADEADE1E6045D3008579C7 /* libART.a */ = {
@@ -1298,6 +1301,7 @@
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/app.app/app";
@@ -1316,6 +1320,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
