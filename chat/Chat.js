@@ -26,6 +26,7 @@ import {connect} from 'react-redux'
 import {AudioRecorder, AudioUtils} from 'react-native-audio';
 
 import {OpenCoreAMR} from 'react-native-amr';
+import Permissions from 'react-native-permissions';
 
 var Toast = require('react-native-toast')
 var UUID = require('react-native-uuid');
@@ -127,7 +128,22 @@ export default class Chat extends React.Component {
                              return AudioRecorder.requestAuthorization();
                          }
                      })
-                     .then((granted)=>{console.log("audio auth granted")})
+                     .then((granted)=>{
+                         console.log("audio auth granted:", granted)
+                     })
+                     .then(()=> {
+                         return Permissions.getPermissionStatus('location');
+                     })
+                     .then((response) => {
+                         if (response == 'undetermined') {
+                             return Permissions.requestPermission('location');
+                         } else {
+                             return response;
+                         }
+                     })
+                     .then((granted)=> {
+                         console.log("location auth granted:", granted);
+                     })
                      .catch((e)=>{console.log("audio auth err:", e)});
     }
 
@@ -557,7 +573,6 @@ export default class Chat extends React.Component {
 
     handleLocationClick() {
         console.log("locaiton click");
-
         var navigator = this.props.navigator;
 
         navigator.push({

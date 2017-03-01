@@ -135,9 +135,16 @@ android {
             }
         }
     }
+
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['libs']
+        }
+    }
 }
 
 dependencies {
+    compile project(':react-native-permissions')
     compile project(':react-native-navigation')
     compile project(':react-native-maps')
     compile project(':react-native-fs')

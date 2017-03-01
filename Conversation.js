@@ -265,7 +265,7 @@ class Conversation extends React.Component {
                          });
 
         var cid =  "g_" + message.receiver;
-
+        var groupID = message.receiver;
         var index = this.props.conversations.findIndex((conv) => {
             return conv.cid == cid;
         });

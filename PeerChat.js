@@ -1,7 +1,9 @@
+import {Platform} from 'react-native';
 import {connect} from 'react-redux';
 import {setUnread, updateConversation, setConversation} from './actions';
 import {BasePeerChat} from "./chat/PeerChat.js";
 import ConversationDB from './model/ConversationDB';
+import { NativeModules } from 'react-native';
 
 class PeerChat extends BasePeerChat {
     static navigatorStyle = {
@@ -48,6 +50,25 @@ class PeerChat extends BasePeerChat {
         this.props.dispatch(updateConversation(conv));
     }
 
+    handleLocationClick() {
+        if (Platform.OS == 'android') {
+            var picker = NativeModules.LocationPicker;
+            picker.pickLocation()
+                  .then((coordinate) => {
+                      console.log("coordinate:",
+                                  coordinate.longitude,
+                                  coordinate.latitude,
+                                  coordinate.address);
+                      this.sendLocationImage(coordinate.longitude,
+                                             coordinate.latitude);
+                  })
+                  .catch((e) => {
+                      console.log("location picker err:", e);
+                  })
+        } else {
+            super.handleLocationClick();
+        }
+    }
 }
 
 
