@@ -24,7 +24,7 @@ export default class GroupMessageDB {
 
     getMessage(msgID) {
         var p = new Promise((resolve, reject) => {
-            this.db.executeSql("SELECT id, sender, group_id, timestamp, flags, content, attachment FROM group_message WHERE id= ?",
+            this.db.executeSql("SELECT id, sender, group_id, group_id as receiver, timestamp, flags, content, attachment FROM group_message WHERE id= ?",
                                [msgID],
                                function(result) {
                                    console.log("tt:", result);
@@ -127,7 +127,7 @@ export default class GroupMessageDB {
 
     //获取最近聊天记录
     getMessages(gid, successCB, errCB) {
-        var sql = "SELECT id, sender, group_id, timestamp, flags, content, attachment FROM group_message  WHERE group_id = ? ORDER BY id DESC LIMIT ?";
+        var sql = "SELECT id, sender, group_id, group_id as receiver, timestamp, flags, content, attachment FROM group_message  WHERE group_id = ? ORDER BY id DESC LIMIT ?";
         this.db.executeSql(sql, [gid, PAGE_SIZE],
                            function(result) {
                                console.log("get messages:", result);
@@ -146,7 +146,7 @@ export default class GroupMessageDB {
     }
 
     getEarlierMessages(gid, msgID, successCB, errCB) {
-        var sql = "SELECT id, sender, group_id, timestamp, flags, content, attachment FROM group_message WHERE group_id = ? AND id < ? ORDER BY id DESC LIMIT ?";
+        var sql = "SELECT id, sender, group_id, group_id as receiver, timestamp, flags, content, attachment FROM group_message WHERE group_id = ? AND id < ? ORDER BY id DESC LIMIT ?";
         this.db.executeSql(sql, [gid, msgID, PAGE_SIZE],
                            function(result) {
                                console.log("get messages:", result);
@@ -178,7 +178,7 @@ export default class GroupMessageDB {
                                        var row = result.rows.item(i);
                                        msgIDs.push(row.rowid);
                                    }
-                                   console.log("message ids:", msgIDs);
+                                   console.log("group message ids:", msgIDs);
                                    resolve(msgIDs);
                                },
                                function(err) {

@@ -24,7 +24,7 @@ export default class PeerMessageDB {
 
     getMessage(msgID) {
         var p = new Promise((resolve, reject) => {
-            this.db.executeSql("SELECT id, sender, receiver, timestamp, flags, content, attachment FROM peer_message WHERE id= ?",
+            this.db.executeSql("SELECT id, peer, sender, receiver, timestamp, flags, content, attachment FROM peer_message WHERE id= ?",
                                [msgID],
                                function(result) {
                                    console.log("tt:", result);
@@ -127,7 +127,7 @@ export default class PeerMessageDB {
     
     //获取最近聊天记录
     getMessages(uid, successCB, errCB) {
-        var sql = "SELECT id, sender, receiver, timestamp, flags, content, attachment FROM peer_message  WHERE peer = ? ORDER BY id DESC LIMIT ?";
+        var sql = "SELECT id, peer, sender, receiver, timestamp, flags, content, attachment FROM peer_message  WHERE peer = ? ORDER BY id DESC LIMIT ?";
         this.db.executeSql(sql, [uid, PAGE_SIZE],
                            function(result) {
                                console.log("get messages:", result);
@@ -146,7 +146,7 @@ export default class PeerMessageDB {
     }
 
     getEarlierMessages(uid, msgID, successCB, errCB) {
-        var sql = "SELECT id, sender, receiver, timestamp, flags, content FROM peer_message, attachment WHERE peer = ? AND id < ? ORDER BY id DESC LIMIT ?";
+        var sql = "SELECT id, peer, sender, receiver, timestamp, flags, content FROM peer_message, attachment WHERE peer = ? AND id < ? ORDER BY id DESC LIMIT ?";
         this.db.executeSql(sql, [uid, msgID, PAGE_SIZE],
                            function(result) {
                                console.log("get messages:", result);
@@ -178,7 +178,7 @@ export default class PeerMessageDB {
                                        var row = result.rows.item(i);
                                        msgIDs.push(row.rowid);
                                    }
-                                   console.log("message ids:", msgIDs);
+                                   console.log("peer message ids:", msgIDs);
                                    resolve(msgIDs);
                                },
                                function(err) {

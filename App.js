@@ -41,7 +41,7 @@ import Login from "./Login";
 import Conversation from './Conversation';
 import Contact from './Contact';
 import Department from './Department';
-
+import SearchResult from './SearchResult';
 
 import LocationPicker from './chat/LocationPicker';
 import Photo from './chat/Photo';
@@ -84,7 +84,8 @@ var app = {
         Navigation.registerComponent('app.Conversation', () => Conversation, this.store, Provider);
         Navigation.registerComponent('app.Contact', () => Contact, this.store, Provider);
         Navigation.registerComponent('app.Department', () => Department, this.store, Provider);
-
+        Navigation.registerComponent('app.SearchResult', () => SearchResult, this.store, Provider);
+        
         Navigation.registerComponent('chat.PeerChat', () => PeerChat, this.store, Provider);
         Navigation.registerComponent('chat.GroupChat', () => GroupChat, this.store, Provider);
         Navigation.registerComponent('chat.Photo', () => Photo, this.store, Provider);
