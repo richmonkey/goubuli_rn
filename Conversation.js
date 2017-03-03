@@ -148,16 +148,15 @@ class Conversation extends React.Component {
         
         var peer = (this.uid == message.sender) ? message.receiver : message.sender;
         var db = PeerMessageDB.getInstance();
-        db.insertMessage(message, peer,
-                         function(rowid) {
-                             message.id = rowid;
-                             message._id = rowid;
-                             RCTDeviceEventEmitter.emit('peer_message', message);
-                         },
-                         function(err) {
-                             
-                         });
-
+        db.insertMessage(message, peer)
+          .then((rowid) => {
+              message.id = rowid;
+              message._id = rowid;
+              RCTDeviceEventEmitter.emit('peer_message', message);
+          })
+          .catch((err) => {
+              console.log("db err:", err);
+          })
 
         cid = "p_" + peer;
         var index = this.props.conversations.findIndex((conv) => {
@@ -254,15 +253,15 @@ class Conversation extends React.Component {
         message.outgoing = (this.uid == message.sender);
         
         var db = GroupMessageDB.getInstance();
-        db.insertMessage(message,
-                         function(rowid) {
-                             message.id = rowid;
-                             message._id = rowid;
-                             RCTDeviceEventEmitter.emit('group_message', message);
-                         },
-                         function(err) {
-                             
-                         });
+        db.insertMessage(message)
+          .then((rowid) => {
+              message.id = rowid;
+              message._id = rowid;
+              RCTDeviceEventEmitter.emit('group_message', message);
+          })
+          .catch((err) => {
+              console.log("db err:", err);
+          });
 
         var cid =  "g_" + message.receiver;
         var groupID = message.receiver;
@@ -409,15 +408,15 @@ class Conversation extends React.Component {
         message.outgoing = false;
         
         var db = GroupMessageDB.getInstance();
-        db.insertMessage(message,
-                         function(rowid) {
-                             message.id = rowid;
-                             message._id = rowid;
-                             RCTDeviceEventEmitter.emit('group_message', message);
-                         },
-                         function(err) {
-                             
-                         });
+        db.insertMessage(message)
+          .then((rowid) => {
+              message.id = rowid;
+              message._id = rowid;
+              RCTDeviceEventEmitter.emit('group_message', message);
+          })
+          .catch((err) => {
+              console.log("db err:", err);
+          });
 
         var cid =  "g_" + message.receiver;
         var index = this.props.conversations.findIndex((conv) => {
