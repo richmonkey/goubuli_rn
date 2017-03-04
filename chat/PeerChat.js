@@ -26,8 +26,6 @@ export class BasePeerChat extends Chat {
     
     constructor(props) {
         super(props);
-        this.onPeerMessage = this.onPeerMessage.bind(this);
-        this.onPeerMessageAck = this.onPeerMessageAck.bind(this);
         this.readonly = false;
     }
 
@@ -55,8 +53,17 @@ export class BasePeerChat extends Chat {
         var im = IMService.instance;
         im.addObserver(this);
 
-        this.listener = RCTDeviceEventEmitter.addListener('peer_message', this.onPeerMessage);
-        this.ackListener = RCTDeviceEventEmitter.addListener('peer_message_ack', this.onPeerMessageACK);
+        console.log("on aaaaa:", this.onPeerMessageAck);
+
+        var f2 = (m) => {
+            this.onPeerMessageAck(m);
+        }
+
+        var f1 = (m) => {
+            this.onPeerMessage(m);
+        }
+        this.listener = RCTDeviceEventEmitter.addListener('peer_message', f1)
+        this.ackListener = RCTDeviceEventEmitter.addListener('peer_message_ack', f2);
 
         this.readonly = this.props.messageID ? true : false;
         var db = PeerMessageDB.getInstance();

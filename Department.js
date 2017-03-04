@@ -15,6 +15,14 @@ const NODE_CONTACT = "contact";
 const NODE_DEPARTMENT = "department";
 
 class Department extends React.Component {
+    static navigatorStyle = {
+        navBarBackgroundColor: '#4dbce9',
+        navBarTextColor: '#ffff00',
+        navBarSubtitleTextColor: '#ff0000',
+        navBarButtonColor: '#ffffff',
+        statusBarTextColorScheme: 'light',
+    };
+    
     constructor(props) {
         super(props);
 
@@ -152,7 +160,8 @@ class Department extends React.Component {
 
     render() {
         return (
-            <View style={{flex: 1, marginTop:4}}>
+            <View style={{flex: 1,
+                          backgroundColor:"white"}}>
                 <ListView
                     enableEmptySections={true}
                     dataSource={this.state.dataSource}

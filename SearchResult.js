@@ -120,7 +120,7 @@ export default class SearchResult extends React.Component {
 
     render() {
         return (
-            <View style={{flex:1}}>
+            <View style={{flex:1, backgroundColor:"white"}}>
                 <ListView
                     enableEmptySections={true}
                     dataSource={this.state.dataSource}

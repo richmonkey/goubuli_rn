@@ -3,6 +3,7 @@ package com.beetle.goubuli;
 import android.support.annotation.NonNull;
 
 import com.airbnb.android.react.maps.MapsPackage;
+import com.oblador.vectoricons.VectorIconsPackage;
 import com.rnfs.RNFSPackage;
 import com.zmxv.RNSound.RNSoundPackage;
 import com.remobile.toast.RCTToastPackage;
@@ -42,7 +43,8 @@ public class MainApplication extends NavigationApplication {
             new ReactNativeAudioPackage(),
             new ImagePickerPackage(),
             new SQLitePluginPackage(),
-            new LocationPackage()
+            new LocationPackage(),
+            new VectorIconsPackage()
     );
   }
 }

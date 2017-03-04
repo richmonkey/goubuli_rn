@@ -12,7 +12,6 @@ import {
 
 import {connect} from 'react-redux'
 import RCTDeviceEventEmitter from 'RCTDeviceEventEmitter';
-import Spinner from 'react-native-loading-spinner-overlay';
 var SQLite = require('react-native-sqlite-storage');
 
 import ProfileDB from "./model/ProfileDB";
@@ -27,12 +26,9 @@ class Contact extends React.Component {
 
         const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
         this.state = {
-            dataSource: ds.cloneWithRows([
-            ])
+            dataSource: ds.cloneWithRows([]),
+            contacts:[],
         };
-
-        this.uid = 0;
-        this.contacts = [];
     }
 
 
@@ -48,9 +44,6 @@ class Contact extends React.Component {
         console.log("now:", now.getTime()/1000, profile.expires);
         console.log("access token:", accessToken);
         console.log("sync key:", syncKey);
-        this.setState({
-            spinnerVisible:true
-        });
         fetch(url, {
             method:"GET",  
             headers: {
@@ -61,9 +54,6 @@ class Contact extends React.Component {
             console.log("status:", response.status);
             return Promise.all([response.status, response.json()]);
         }).then((r) => {
-            this.setState({
-                spinnerVisible:false
-            });
             var status = r[0];
             var responseJson = r[1];
             if (status == 200) {
@@ -136,9 +126,6 @@ class Contact extends React.Component {
             }
         }).catch((error) => {
             console.log("error:", error);
-            this.setState({
-                spinnerVisible:false
-            });
             alert(error);
         });
     }
@@ -365,7 +352,6 @@ class Contact extends React.Component {
     render() {
         return (
             <View style={{flex: 1, marginTop:4}}>
-                <Spinner visible={this.state.spinnerVisible} />
                 <ListView
                     enableEmptySections={true}
                     dataSource={this.state.dataSource}

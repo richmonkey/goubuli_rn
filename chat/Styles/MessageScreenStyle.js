@@ -37,7 +37,7 @@ export default create({
     searchRow: {
         flex: 1,
         flexDirection: 'column',        
-        backgroundColor: Colors.snow,
+        backgroundColor: Colors.white1,
         justifyContent: 'center',
         marginLeft:4,
     },

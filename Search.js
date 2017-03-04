@@ -1,25 +1,40 @@
-import React from 'react';
+import React, { Component } from 'react';
+
 import {
     Platform,
     Text,
     View,
     Image,
     ListView,
+    TextInput,
     TouchableWithoutFeedback,
     TouchableHighlight,
-    PushNotificationIOS,
-    Dimensions,
+    TouchableOpacity,
 } from 'react-native';
 
-var SearchBar = require('react-native-search-bar');
-const screen = Dimensions.get('window');
-const WIDTH = screen.width;
-const HEIGHT = screen.height;
+import SearchBar from './SearchBar';
+import PeerMessageDB from './chat/PeerMessageDB';
+import GroupMessageDB from './chat/GroupMessageDB';
 
-export default class Search extends React.Component {
+import Searchable from './Searchable';
+
+export default class Search extends Component {
+
+    static navigatorStyle = {
+        navBarBackgroundColor: '#4dbce9',
+        navBarTextColor: '#ffff00',
+        navBarSubtitleTextColor: '#ff0000',
+        navBarButtonColor: '#ffffff',
+        statusBarTextColorScheme: 'light',
+        drawUnderNavBar:true,
+        navBarHidden:true,
+    };
+    
     constructor(props) {
         super(props);
 
+        this.contacts = this.props.contacts;
+        this.groups = this.props.groups;
         const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
         this.state = {
             dataSource: ds.cloneWithRows([]),
@@ -28,151 +43,38 @@ export default class Search extends React.Component {
             searchText:"",
         };
     }
-    
-    //search function
-    onFocus() {
-        console.log("on focus");
-        this.setState({showSearchCancel:true});
+
+    onBack() {
+        console.log("back...");
         var navigator = this.props.navigator;
-        navigator.toggleNavBar({
-            to:'hidden',
-            animated:true
-        });
+        navigator.pop();
     }
     
-    onBlur() {
-        console.log("on blur");
-        this.setState({showSearchCancel:false});
-        var navigator = this.props.navigator;
-        navigator.toggleNavBar({
-            to:'shown',
-            animated:true
-        });
-    }
-
-    //派生类重写
-    renderRow(conv) {
-        
-    }
-
-    renderSearchRow(conv) {
-        
-    }
-
-    
-    searchKey(text) {
-        
-    }
-    
-    search() {
-        if (this.searching) {
-            return;
-        }
-        this.searching = true;
-        var text = this.state.searchText;
-        
-        this.searchKey(text)
-            .then((results) => {
-                this.searching = false;
-                this.setState({
-                    searchDataSource:this.state.dataSource.cloneWithRows(results)
-                });                    
-                //在搜索过程中搜索输入框内的内容已经变化
-                if (this.state.searchText != text) {
-                    //递归调用
-                    this.search();
-                }
-            });        
-    }
-
-    onSearchBarChangeText(e) {
-        console.log("change text:", e);
-        if (typeof(e) == 'string' && e) {
-            this.setState({searchText:e}, () => {
-                this.search();
-            });
-          
-        } else {
-            this.setState({searchText:""}, () => {
-                this.search();
-            });
-        }
-    }
-    
-    renderSearchBar() {
-        return (
-            <SearchBar
-                ref = {(r) => {this.searchBar = r}}
-                placeholder='Search'
-                text = {this.state.searchText}
-                showsCancelButton={this.state.showSearchCancel}
-                onFocus={this.onFocus.bind(this)}
-                onBlur={this.onBlur.bind(this)}
-                onChangeText={this.onSearchBarChangeText.bind(this)}
-                onSearchButtonPress={() => {console.log("search button press");}}
-                onCancelButtonPress={() => {console.log("search cancel");}}
-            />
-        );
-    }
-
-    cancelSearch() {
-        this.setState({
-            searchText:"",
-            showSearchCancel:false,
-            searchDataSource:this.state.searchDataSource.cloneWithRows([])
-        });
-        this.searchBar.blur();
-        var navigator = this.props.navigator;
-        navigator.toggleNavBar({
-            to:'shown',
-            animated:false,
-        });
-    }
-
     render() {
-        var marginTop = this.state.showSearchCancel ? 22 : 0;
-        var left = this.state.showSearchCancel ? 0: WIDTH;
-        var backgroundColor = (this.state.searchText.length) ? "white" : "#a9a9a97f";
-
-        var self = this;
-        var onResponderRelease = function() {
-            console.log("on release:", self.refs);
-            if (self.state.searchText.length > 0) {
-                return;
-            }
-            self.searchBar.blur();
-        }
-        
         return (
-            <View style={{flex:1, marginTop:marginTop}}>
+            <View style={{flex:1, backgroundColor:"white"}}>
+               
+                <SearchBar
+                    onSearchChange={this.onSearchBarChangeText.bind(this)}
+                    height={50}
+                    onBack={this.onBack.bind(this)}
+                    onFocus={() => console.log('On Focus')}
+                    onBlur={() => console.log('On Blur')}
+                    placeholder={'搜索'}
+                    iconColor="white"
+                    placeholderColor="gray"
+                    autoCorrect={false}
+                    padding={0}
+                    returnKeyType={'search'}/>
+
+                
                 <ListView
                     enableEmptySections={true}
-                    dataSource={this.state.dataSource}
-                    renderHeader={this.renderSearchBar.bind(this)}
-                    renderRow={this.renderRow.bind(this)}
+                    dataSource={this.state.searchDataSource}
+                    renderRow={this.renderSearchRow.bind(this)}
                 />
-                
-                <View
-                    style={{flex:1,
-                            right:0,
-                            left:left,
-                            bottom:0,
-                            top:0,
-                            position:"absolute",
-                            marginTop:44,
-                            backgroundColor:backgroundColor,
-                            zIndex:10}}
-                    onStartShouldSetResponder={() => true}
-                    onResponderRelease={onResponderRelease}>
-                    <ListView
-                        style={{flex:1}}
-                        enableEmptySections={true}
-                        dataSource={this.state.searchDataSource}
-                        renderRow={this.renderSearchRow.bind(this)}
-                    />
-                </View>
             </View>
         );
     }
-    
-}
+};
+Object.assign(Search.prototype, Searchable);
