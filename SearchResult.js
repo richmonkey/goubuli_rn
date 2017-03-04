@@ -37,7 +37,6 @@ export default class SearchResult extends React.Component {
         var profile = ProfileDB.getInstance();
         function onPress() {
             console.log("row data:", conv);
-            //todo 跳转到搜索结果所在位置
             if (conv.type == CONVERSATION_PEER) {
                 navigator.push({
                     title:conv.name,
@@ -51,6 +50,7 @@ export default class SearchResult extends React.Component {
                         peer:conv.peer,
                         name:conv.name,
                         token:profile.gobelieveToken,
+                        messageID:message.id,
                     },
                 });
             } else if (conv.type == CONVERSATION_GROUP) {
@@ -67,6 +67,7 @@ export default class SearchResult extends React.Component {
                         name:conv.name,
                         token:profile.gobelieveToken,
                         contacts:self.contacts,
+                        messageID:message.id,
                     },
                 });                
             }

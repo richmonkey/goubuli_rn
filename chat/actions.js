@@ -2,6 +2,7 @@
 
 export const SET_MESSAGES = "set_messages";
 export const ADD_MESSAGE = "add_message";
+export const ADD_MESSAGES = "add_messages";
 export const INSERT_MESSAGES = "insert_messages";
 export const ACK_MESSAGE = "ack_message";
 export const PLAY_MESSAGE = "play_message";
@@ -63,6 +64,13 @@ export function addMessage(message) {
     return {
         type:ADD_MESSAGE,
         message:message
+    }
+}
+
+export function addMessages(messages) {
+    return {
+        type:ADD_MESSAGES,
+        messages:messages
     }
 }
 

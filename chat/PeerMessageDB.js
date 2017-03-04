@@ -27,7 +27,6 @@ export default class PeerMessageDB {
             this.db.executeSql("SELECT id, peer, sender, receiver, timestamp, flags, content, attachment FROM peer_message WHERE id= ?",
                                [msgID],
                                function(result) {
-                                   console.log("tt:", result);
                                    if (result.rows.length > 0) {
                                        var row = result.rows.item(0);
                                        console.log("get message result:", row);
@@ -126,43 +125,74 @@ export default class PeerMessageDB {
     }
     
     //获取最近聊天记录
-    getMessages(uid, successCB, errCB) {
+    getMessages(uid) {
         var sql = "SELECT id, peer, sender, receiver, timestamp, flags, content, attachment FROM peer_message  WHERE peer = ? ORDER BY id DESC LIMIT ?";
-        this.db.executeSql(sql, [uid, PAGE_SIZE],
-                           function(result) {
-                               console.log("get messages:", result);
-                               var msgs = [];
-                               for (var i = 0; i < result.rows.length; i++) {
-                                   var row = result.rows.item(i);
-                                   console.log("row:", row);
-                                   msgs.push(row);
-                               }
+        var p = new Promise((resolve, reject) => {
+            this.db.executeSql(sql, [uid, PAGE_SIZE],
+                               function(result) {
+                                   console.log("get messages:", result);
+                                   var msgs = [];
+                                   for (var i = 0; i < result.rows.length; i++) {
+                                       var row = result.rows.item(i);
+                                       console.log("row:", row);
+                                       msgs.push(row);
+                                   }
 
-                               successCB(msgs);
-                           },
-                           function(e) {
-                               errCB(e);
-                           });
+                                   resolve(msgs);
+                               },
+                               function(e) {
+                                   reject(e);
+                               });
+        });
+        return p;
     }
 
-    getEarlierMessages(uid, msgID, successCB, errCB) {
-        var sql = "SELECT id, peer, sender, receiver, timestamp, flags, content FROM peer_message, attachment WHERE peer = ? AND id < ? ORDER BY id DESC LIMIT ?";
-        this.db.executeSql(sql, [uid, msgID, PAGE_SIZE],
-                           function(result) {
-                               console.log("get messages:", result);
-                               var msgs = [];
-                               for (var i = 0; i < result.rows.length; i++) {
-                                   var row = result.rows.item(i);
-                                   console.log("row:", row);
-                                   msgs.push(row);
-                               }
-                               successCB(msgs);
-                           },
-                           function(e) {
-                               errCB(e);
-                           });   
+    getEarlierMessages(uid, msgID, limit) {
+        var sql = "SELECT id, peer, sender, receiver, timestamp, flags, content,attachment FROM peer_message WHERE peer = ? AND id < ? ORDER BY id DESC LIMIT ?";
+        if (limit == undefined) {
+            limit = PAGE_SIZE;
+        }
+        var p = new Promise((resolve, reject) => {
+            this.db.executeSql(sql, [uid, msgID, limit],
+                               function(result) {
+                                   console.log("get messages:", result);
+                                   var msgs = [];
+                                   for (var i = 0; i < result.rows.length; i++) {
+                                       var row = result.rows.item(i);
+                                       console.log("row:", row);
+                                       msgs.push(row);
+                                   }
+                                   resolve(msgs);
+                               },
+                               function(e) {
+                                   reject(e);
+                               });
+        });
+        return p;
     }
 
+    getLaterMessages(uid, msgID) {
+        var sql = "SELECT id, peer, sender, receiver, timestamp, flags, content, attachment FROM peer_message WHERE peer = ? AND id > ? ORDER BY id ASC LIMIT ?";
+        var p = new Promise((resolve, reject) => {
+            this.db.executeSql(sql, [uid, msgID, PAGE_SIZE],
+                               function(result) {
+                                   var msgs = [];
+                                   for (var i = 0; i < result.rows.length; i++) {
+                                       var row = result.rows.item(i);
+                                       console.log("row:", row);
+                                       msgs.push(row);
+                                   }
+                                   msgs.reverse();
+                                   console.log("get later messages:", msgs);
+                                   resolve(msgs);
+                               },
+                               function(e) {
+                                   reject(e);
+                               });
+        });
+        return p;
+    }
+    
     search(key) {
         //manual escape, bind not working, why?
         key = key.replace("'","\'");

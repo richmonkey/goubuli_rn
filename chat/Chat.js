@@ -61,7 +61,8 @@ export default class Chat extends React.Component {
             recordingColor:"transparent",
 
             canLoadMoreContent:true,
-
+            canLoadNewContent:true,
+            
             currentMetering:0,
         };
 
@@ -75,6 +76,7 @@ export default class Chat extends React.Component {
         this._messages = [];
 
         this._loadMoreContentAsync = this._loadMoreContentAsync.bind(this);
+        this._loadNewContentAsync = this._loadMoreContentAsync.bind(this);
         this.onSend = this.onSend.bind(this);
         
         this.onTouchStart = this.onTouchStart.bind(this);
@@ -117,7 +119,7 @@ export default class Chat extends React.Component {
     }
     
     componentWillMount() {
-   
+        
     }
 
     componentDidMount() {
@@ -148,7 +150,7 @@ export default class Chat extends React.Component {
     }
 
     componentWillUnmount() {
-    
+        
     }
 
     downloadAudio(message) {
@@ -332,9 +334,6 @@ export default class Chat extends React.Component {
             message.id = rowid;
             message._id = rowid;
             self.addMessage(message);
-            self.setState({
-                value: '',
-            });
             self.sendMessage(message);
         });
     }
@@ -740,7 +739,7 @@ export default class Chat extends React.Component {
             console.log("record progress:", data);
             if (Platform.OS == 'ios') {
                 var metering = data.currentMetering;
-              
+                
                 //ios: [-160, 0]
                 metering = Math.max(metering, -160);
                 metering = Math.min(metering, 0);
@@ -944,6 +943,10 @@ export default class Chat extends React.Component {
         }
     }
 
+    scrollToTop(animated = true) {
+        this._messageContainerRef.scrollToTop({animated:animated});
+    }
+    
     scrollToBottom(animated = true) {
         this._messageContainerRef.scrollTo({
             y: 0,
@@ -1018,6 +1021,10 @@ export default class Chat extends React.Component {
     _loadMoreContentAsync = async () => {
         console.log("loadMoreContentAsync not implement");
     }
+
+    _loadNewContentAsync = async () => {
+        console.log("loadMoreContentAsync not implement");
+    }
     
     renderMessages() {
         return (
@@ -1026,6 +1033,9 @@ export default class Chat extends React.Component {
 
                     canLoadMore={this.state.canLoadMoreContent}
                     onLoadMoreAsync={this._loadMoreContentAsync}
+
+                    canLoadNew={this.state.canLoadNewContent}
+                    onLoadNewAsync={this._loadNewContentAsync}
                     
                     user={{
                         _id: this.props.sender, // sent messages should have same user._id

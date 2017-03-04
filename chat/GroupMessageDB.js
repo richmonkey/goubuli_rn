@@ -126,8 +126,10 @@ export default class GroupMessageDB {
     }
 
     //获取最近聊天记录
-    getMessages(gid, successCB, errCB) {
+    getMessages(gid) {
         var sql = "SELECT id, sender, group_id, group_id as receiver, timestamp, flags, content, attachment FROM group_message  WHERE group_id = ? ORDER BY id DESC LIMIT ?";
+
+        var p = new Promise((resolve, reject) => {        
         this.db.executeSql(sql, [gid, PAGE_SIZE],
                            function(result) {
                                console.log("get messages:", result);
@@ -138,31 +140,62 @@ export default class GroupMessageDB {
                                    msgs.push(row);
                                }
 
-                               successCB(msgs);
+                               resolve(msgs);
                            },
                            function(e) {
-                               errCB(e);
+                               reject(e);
                            });
+        });
+        return p;
     }
 
-    getEarlierMessages(gid, msgID, successCB, errCB) {
+    getEarlierMessages(gid, msgID, limit) {
         var sql = "SELECT id, sender, group_id, group_id as receiver, timestamp, flags, content, attachment FROM group_message WHERE group_id = ? AND id < ? ORDER BY id DESC LIMIT ?";
-        this.db.executeSql(sql, [gid, msgID, PAGE_SIZE],
-                           function(result) {
-                               console.log("get messages:", result);
-                               var msgs = [];
-                               for (var i = 0; i < result.rows.length; i++) {
-                                   var row = result.rows.item(i);
-                                   console.log("row:", row);
-                                   msgs.push(row);
-                               }
-                               successCB(msgs);
-                           },
-                           function(e) {
-                               errCB(e);
-                           });   
+        if (limit == undefined) {
+            limit = PAGE_SIZE;
+        }
+        var p = new Promise((resolve, reject) => {
+            this.db.executeSql(sql, [gid, msgID, limit],
+                               function(result) {
+                                   console.log("get messages:", result);
+                                   var msgs = [];
+                                   for (var i = 0; i < result.rows.length; i++) {
+                                       var row = result.rows.item(i);
+                                       console.log("row:", row);
+                                       msgs.push(row);
+                                   }
+                                   resolve(msgs);
+                               },
+                               function(e) {
+                                   reject(e);
+                               });
+        });
+        return p;
     }
 
+    getLaterMessages(gid, msgID) {
+        var sql = "SELECT id, sender, group_id, group_id as receiver, timestamp, flags, content, attachment FROM group_message WHERE group_id = ? AND id > ? ORDER BY id ASC LIMIT ?";
+        var p = new Promise((resolve, reject) => {
+            this.db.executeSql(sql, [gid, msgID, PAGE_SIZE],
+                               function(result) {
+                                   console.log("get messages:", result);
+                                   var msgs = [];
+                                   for (var i = 0; i < result.rows.length; i++) {
+                                       var row = result.rows.item(i);
+                                       console.log("row:", row);
+                                       msgs.push(row);
+                                   }
+                                   msgs.reverse();
+                                   resolve(msgs);
+                               },
+                               function(e) {
+                                   reject(e);
+                               });   
+            
+        });
+        return p;
+    }
+    
     search(key) {
         //manual escape, bind not working, why?
         key = key.replace("'","\'");

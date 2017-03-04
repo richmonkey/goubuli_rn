@@ -8,7 +8,7 @@ import RCTDeviceEventEmitter from 'RCTDeviceEventEmitter';
 import {AudioUtils} from 'react-native-audio';
 
 import PeerMessageDB from './PeerMessageDB.js'
-import {setMessages, addMessage, insertMessages, ackMessage} from './actions'
+import {setMessages, addMessage, addMessages, insertMessages, ackMessage} from './actions'
 import {MESSAGE_FLAG_FAILURE, MESSAGE_FLAG_LISTENED} from './IMessage';
 
 var IMService = require("./im");
@@ -26,47 +26,73 @@ export class BasePeerChat extends Chat {
     
     constructor(props) {
         super(props);
+        this.onPeerMessage = this.onPeerMessage.bind(this);
+        this.onPeerMessageAck = this.onPeerMessageAck.bind(this);
+        this.readonly = false;
     }
 
+    onPeerMessage(message) {
+        if ((message.sender == this.props.peer ||
+             message.receiver == this.props.peer) &&
+            !this.readonly){
+            this.downloadAudio(message);
+            this.props.dispatch(addMessage(message));
+            this.scrollToBottom();
+        }        
+    }
+
+    onPeerMessageAck(message) {
+        if ((message.sender == this.props.peer ||
+             message.receiver == this.props.peer) &&
+            !this.readonly) {
+            this.props.dispatch(ackMessage(message.id));
+        }
+    }
+    
     componentWillMount() {
         super.componentWillMount();
         
         var im = IMService.instance;
         im.addObserver(this);
 
-        this.listener = RCTDeviceEventEmitter.addListener('peer_message',
-                                                          (message)=>{
-                                                              if (message.sender == this.props.peer ||
-                                                                  message.receiver == this.props.peer) {
-                                                                  this.downloadAudio(message);
-                                                                  this.props.dispatch(addMessage(message));
-                                                                  this.scrollToBottom();
-                                                              }
-                                                          });
+        this.listener = RCTDeviceEventEmitter.addListener('peer_message', this.onPeerMessage);
+        this.ackListener = RCTDeviceEventEmitter.addListener('peer_message_ack', this.onPeerMessageACK);
 
-
-        this.ackListener = RCTDeviceEventEmitter.addListener('peer_message_ack',
-                                                          (message)=>{
-                                                              if (message.sender == this.props.peer ||
-                                                                  message.receiver == this.props.peer) {
-                                                                  this.props.dispatch(ackMessage(message.id));
-                                                              }
-                                                          });
-        
+        this.readonly = this.props.messageID ? true : false;
         var db = PeerMessageDB.getInstance();
 
-        db.getMessages(this.props.receiver,
-                       (msgs)=>{
-                           for (var i in msgs) {
-                               var m = msgs[i];
-                               this.parseMessageContent(m);
-                               this.downloadAudio(m);
-                           }
-                           console.log("set messages:", msgs.length);
-                           this.props.dispatch(setMessages(msgs));
-                       },
-                       (e)=>{});
-
+        if (this.props.messageID) {
+            //从搜索页面跳转来, 查看某一条消息
+            var p1 = db.getEarlierMessages(this.props.receiver, this.props.messageID, 2);
+            var p2 = db.getMessage(this.props.messageID);
+            var p3 = db.getLaterMessages(this.props.receiver, this.props.messageID);
+            Promise.all([p1, p2, p3])
+                   .then((results) => {
+                       var msgs = results[2].concat(results[1], results[0]);
+                       for (var i in msgs) {
+                           var m = msgs[i];
+                           m.receiver = m.group_id;
+                           this.parseMessageContent(m);
+                           this.downloadAudio(m);
+                       }
+                       console.log("set messages:", msgs.length);
+                       this.props.dispatch(setMessages(msgs));
+                       setTimeout(() => {
+                           this.scrollToTop(false);
+                       }, 0);
+                   });            
+        } else {
+            db.getMessages(this.props.receiver)
+            .then((msgs)=>{
+                for (var i in msgs) {
+                    var m = msgs[i];
+                    this.parseMessageContent(m);
+                    this.downloadAudio(m);
+                }
+                console.log("set messages:", msgs.length);
+                this.props.dispatch(setMessages(msgs));
+            });
+        }
     }
 
 
@@ -128,7 +154,30 @@ export class BasePeerChat extends Chat {
     
     saveMessage(message) {
         var db = PeerMessageDB.getInstance();
-        return db.insertMessage(message, this.props.receiver);
+        if (this.readonly) {
+            return db.getMessages(this.props.peer)
+                     .then((msgs) => {
+                         for (var i in msgs) {
+                             var m = msgs[i];
+                             this.parseMessageContent(m);
+                             this.downloadAudio(m);
+                         }
+                         console.log("set messages:", msgs.length);
+                         this.props.dispatch(setMessages(msgs));
+                         this.readonly = false;
+                     })
+                     .then(() => {
+                         message.peer = this.props.peer;
+                         return db.insertMessage(message, this.props.peer);
+                     })
+                     .then((msgid) => {
+                         console.log("new peer message id:", msgid);
+                         return msgid;
+                     });
+        } else {
+            message.peer = this.props.peer;
+            return db.insertMessage(message, this.props.peer);
+        }
     }
 
     updateMessageAttachment(msgID, attachment) {
@@ -156,18 +205,11 @@ export class BasePeerChat extends Chat {
         var m = this.props.messages[this.props.messages.length - 1];
 
         console.log("load more content...:", m.id);
-        var p = new Promise((resolve, reject) => {
-            var db = PeerMessageDB.getInstance();
-            db.getEarlierMessages(this.props.receiver, m.id,
-                                  (messages) => {
-                                      resolve(messages);
-                                  },
-                                  (err) => {
-                                      reject(err);
-                                  });
-        });
 
-        messages = await p;
+        var db = PeerMessageDB.getInstance();
+        var p = db.getEarlierMessages(this.props.receiver, m.id)
+
+        var messages = await p;
 
         if (messages.length == 0) {
             this.setState({
@@ -182,6 +224,39 @@ export class BasePeerChat extends Chat {
         }
 
         this.props.dispatch(insertMessages(messages));
+        return;
+    }
+
+    _loadNewContentAsync = async () => {
+        if (this.props.messages.length == 0) {
+            return;
+        }
+
+        var m = this.props.messages[0];
+
+        console.log("load new content...:", m.id, this.props.receiver);
+ 
+        var db = PeerMessageDB.getInstance();
+        var p = db.getLaterMessages(this.props.receiver, m.id)
+                  .then((msgs) => {
+                      console.log("mmmm:", msgs);
+                      return msgs;
+                  });
+        var messages = await p;
+        console.log("load new content...:", messages);
+        if (messages.length == 0) {
+            this.setState({
+                canLoadNewContent:false
+            })
+            return;
+        }
+        for (var i in messages) {
+            var m = messages[i];
+            this.parseMessageContent(m);
+            this.downloadAudio(m);
+        }
+     
+        this.props.dispatch(addMessages(messages));
         return;
     }
 }

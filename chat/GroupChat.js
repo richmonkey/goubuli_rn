@@ -8,7 +8,7 @@ import RCTDeviceEventEmitter from 'RCTDeviceEventEmitter';
 import {AudioUtils} from 'react-native-audio';
 
 import GroupMessageDB from './GroupMessageDB.js'
-import {setMessages, addMessage, insertMessages, ackMessage} from './actions'
+import {setMessages, addMessage, addMessages, insertMessages, ackMessage} from './actions'
 import {MESSAGE_FLAG_FAILURE, MESSAGE_FLAG_LISTENED} from './IMessage';
 
 var IMService = require("./im");
@@ -45,18 +45,40 @@ export class BaseGroupChat extends Chat {
         
         var db = GroupMessageDB.getInstance();
 
-        db.getMessages(this.props.receiver,
-                       (msgs)=>{
-                           for (var i in msgs) {
-                               var m = msgs[i];
-                               m.receiver = m.group_id;
-                               this.parseMessageContent(m);
-                               this.downloadAudio(m);
-                           }
-                           console.log("set messages:", msgs.length);
-                           this.props.dispatch(setMessages(msgs));
-                       },
-                       (e)=>{});
+        if (this.props.messageID) {
+            //从搜索页面跳转来, 查看某一条消息
+            var p1 = db.getEarlierMessages(this.props.receiver, this.props.messageID, 2);
+            var p2 = db.getMessage(this.props.messageID);
+            var p3 = db.getLaterMessages(this.props.receiver, this.props.messageID);
+            Promise.all([p1, p2, p3])
+                   .then((results) => {
+                       var msgs = results[2].concat(results[1], results[0]);
+                       for (var i in msgs) {
+                           var m = msgs[i];
+                           m.receiver = m.group_id;
+                           this.parseMessageContent(m);
+                           this.downloadAudio(m);
+                       }
+                       console.log("set messages:", msgs.length);
+                       this.props.dispatch(setMessages(msgs));
+                       setTimeout(() => {
+                           this.scrollToTop(false);
+                       }, 0);
+                   });
+            
+        } else {
+            db.getMessages(this.props.receiver)
+              .then((msgs) => {
+                  for (var i in msgs) {
+                      var m = msgs[i];
+                      m.receiver = m.group_id;
+                      this.parseMessageContent(m);
+                      this.downloadAudio(m);
+                  }
+                  console.log("set messages:", msgs.length);
+                  this.props.dispatch(setMessages(msgs));
+              });
+        }
     }
 
 
@@ -156,16 +178,9 @@ export class BaseGroupChat extends Chat {
         var m = this.props.messages[this.props.messages.length - 1];
 
         console.log("load more content...:", m.id);
-        var p = new Promise((resolve, reject) => {
-            var db = GroupMessageDB.getInstance();
-            db.getEarlierMessages(this.props.receiver, m.id,
-                                  (messages) => {
-                                      resolve(messages);
-                                  },
-                                  (err) => {
-                                      reject(err);
-                                  });
-        });
+
+        var db = GroupMessageDB.getInstance();
+        var p = db.getEarlierMessages(this.props.receiver, m.id);
 
         messages = await p;
 
@@ -182,6 +197,36 @@ export class BaseGroupChat extends Chat {
         }
 
         this.props.dispatch(insertMessages(messages));
+        return;
+    }
+
+    _loadNewContentAsync = async () => {
+        if (this.props.messages.length == 0) {
+            return;
+        }
+
+        var m = this.props.messages[0];
+
+        console.log("load more content...:", m.id);
+      
+        var db = GroupMessageDB.getInstance();
+        var p = db.getLaterMessages(this.props.receiver, m.id);
+
+        messages = await p;
+
+        if (messages.length == 0) {
+            this.setState({
+                canLoadNewContent:false
+            })
+            return;
+        }
+        for (var i in messages) {
+            var m = messages[i];
+            this.parseMessageContent(m);
+            this.downloadAudio(m);
+        }
+
+        this.props.dispatch(addMessages(messages));
         return;
     }
 }

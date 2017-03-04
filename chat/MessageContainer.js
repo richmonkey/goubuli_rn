@@ -69,7 +69,10 @@ export default class MessageContainer extends React.Component {
         });
     }
 
-
+    scrollToTop(options) {
+        //invert
+        this._invertibleScrollViewRef.scrollToEnd(options);
+    }
     scrollTo(options) {
         this._invertibleScrollViewRef.scrollTo(options);
     }
@@ -135,6 +138,8 @@ export default class MessageContainer extends React.Component {
 
                     canLoadMore={this.props.canLoadMore}
                     onLoadMoreAsync={this.props.onLoadMoreAsync}
+                    canLoadNew={this.props.canLoadNew}
+                    onLoadNewAsync={this.props.onLoadNewAsync}
                 />
             </View>
         );

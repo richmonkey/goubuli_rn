@@ -153,6 +153,8 @@ class Conversation extends Search {
         message.outgoing = (this.uid == message.sender);
         
         var peer = (this.uid == message.sender) ? message.receiver : message.sender;
+        message.peer = peer;
+        
         var db = PeerMessageDB.getInstance();
         db.insertMessage(message, peer)
           .then((rowid) => {
@@ -219,7 +221,7 @@ class Conversation extends Search {
     }
 
     handleMessageACK(msg) {
-        console.log("handle message ack");
+        console.log("handle message ack:", msg);
         var db = PeerMessageDB.getInstance();
         db.updateFlags(msg.id, MESSAGE_FLAG_ACK);
         RCTDeviceEventEmitter.emit('peer_message_ack', msg);
