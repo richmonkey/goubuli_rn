@@ -201,7 +201,7 @@ var app = {
                 Navigation.startSingleScreenApp({
                     screen: {
                         screen: 'app.Authentication',
-                        title: 'Auth',
+                        title: '手机验证',
                         navigatorStyle: {
                             navBarBackgroundColor: '#4dbce9',
                             navBarTextColor: '#ffff00',

@@ -105,7 +105,7 @@ export default class Authentication extends Component {
                 var exp = t.getTime()/1000 + expires;
 
                 navigator.push({
-                    title:"Login",
+                    title:"登录",
                     screen:"app.Login",
                     passProps:{
                         organizations:orgs,
@@ -196,29 +196,29 @@ export default class Authentication extends Component {
         var text = "获取验证码";
         if (this.state.receivingSMS) {
             var t = Math.max(0, 60 - this.state.tick);
-            text = `获取验证码${t}`;
+            text = `${t}后重试`;
         }
 
         var inputHeight = Platform.select({
             ios:35,
             android:45
         });
-        
-        return (
-            <View>
-                <Spinner visible={this.state.spinnerVisible} />
 
+        return (
+            <View style={{flex:1, marginHorizontal:16}}>
+                <Spinner visible={this.state.spinnerVisible} />
                 <TextInput
                     onChangeText={(text) => {
                             this.setState({number:text});
                         }}
                     style={{    
                         marginTop:40,
-                        marginLeft:8,
-                        marginRight:8,
-                        borderWidth: 0.5,
-                        borderColor: '#0f0f0f',
+                        marginHorizontal:8,
+                        borderRadius:4,
+                        borderWidth: 1,
+                        borderColor: 'gray',
                         height:inputHeight,
+                        padding:4,
                     }}
                     underlineColorAndroid='rgba(0,0,0,0)'
                     keyboardType="numeric"
@@ -226,37 +226,51 @@ export default class Authentication extends Component {
                     value={this.state.number}
                 />
 
-                <TouchableHighlight underlayColor='ghostwhite'
-                                    style={{alignItems: 'center', alignSelf:'center', marginTop:12}}
-                                    onPress={this.onGetVerifyCode.bind(this)} >
-                    <Text style={{padding:8}}>{text}</Text>
-                </TouchableHighlight>
-
-                <TextInput
-                    onChangeText={(text) => {
-                            this.setState({code:text});
+                <View style={{flexDirection:"row", height:inputHeight,
+                              alignItems: 'center', alignSelf:'center', marginTop:30}}>
+                    <TextInput
+                        onChangeText={(text) => {
+                                this.setState({code:text});
+                            }}
+                        style={{
+                            marginHorizontal:8,
+                            borderRadius:4,
+                            borderWidth: 1,
+                            borderColor: 'gray',
+                            height:inputHeight,
+                            flex:1,
+                            padding:4,
                         }}
-                    style={{    
-                        marginTop:40,
-                        marginLeft:8,
-                        marginRight:8,
-                        borderWidth: 0.5,
-                        borderColor: '#0f0f0f',
-                        height:inputHeight,                        
-                    }}
-                    underlineColorAndroid='rgba(0,0,0,0)'
-                    keyboardType="numeric"
-                    placeholder="验证码"
-                    value={this.state.code}
-                />
+                        underlineColorAndroid='rgba(0,0,0,0)'
+                        keyboardType="numeric"
+                        placeholder="验证码"
+                        value={this.state.code}
+                    />
 
+                    <TouchableHighlight underlayColor='ghostwhite'
+                                        style={{}}
+                                        onPress={this.onGetVerifyCode.bind(this)} >
+                        <Text style={{padding:8}}>{text}</Text>
+                    </TouchableHighlight>
+                </View>
+
+                <View   style={{flexDirection: 'row'}}>
                 <TouchableHighlight underlayColor='ghostwhite'
                                     style={{alignItems: 'center',
                                             alignSelf:'center',
-                                            marginTop:12}}
+                                            justifyContent:'center',
+                                            marginTop:24,
+                                            marginRight:8,
+                                            marginHorizontal:8,
+                                            flex:1.0,
+                                            height:40,
+                                            backgroundColor:"gainsboro"}}
                                     onPress={this.handleLogin.bind(this)} >
-                    <Text style={{padding:8}}>登录</Text>
+                    <Text style={{}}>
+                        登录
+                    </Text>
                 </TouchableHighlight>
+                </View>
             </View>
         );
         
