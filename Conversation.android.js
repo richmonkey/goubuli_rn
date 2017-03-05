@@ -74,6 +74,8 @@ class Conversation extends BaseConversation {
         return (
             <View style={{flex:1}}>
                 <ListView
+                    ref = {(r) => {this.listView = r}}
+                    onScroll={this.onScroll.bind(this)}
                     enableEmptySections={true}
                     dataSource={this.state.dataSource}
                     renderRow={this.renderRow.bind(this)}

@@ -44,6 +44,7 @@ const screen = Dimensions.get('window');
 const WIDTH = screen.width;
 const HEIGHT = screen.height;
 
+const ROW_HEIGHT = 64;
 
 export default class BaseConversation extends React.Component {
 
@@ -62,13 +63,15 @@ export default class BaseConversation extends React.Component {
         
         this.contacts = [];
         this.groups = [];
-        
-    
+
+        this.contentOffset = {x:0, y:0};
+        this.tabCount = 0;
+        this.searchBarHeight = 0;
         this.props.navigator.setOnNavigatorEvent(this.onNavigatorEvent.bind(this));
     }
 
     onNavigatorEvent(event) {
-        console.log("event:", event);
+        console.log("event:", event, event.type);
         if (event.type == 'NavBarButtonPress') { 
             if (event.id == 'new') {
                 var navigator = this.props.navigator;
@@ -83,9 +86,69 @@ export default class BaseConversation extends React.Component {
                     },
                 });                
             }
+        } else {
+            if (event.id == 'bottomTabSelected') {
+                console.log("bottom tab selected");
+                this.tabCount++;
+                if (this.tabCount == 2) {
+                    //double click tab;
+                    this.tabCount = 0;
+                    this.onTabDoubleClick();
+                } else if (this.tabCount == 1) {
+                    setTimeout(() => {
+                        this.tabCount = 0;
+                    }, 200);
+                }
+            }
         }
     }
 
+    getRowContentOffset(row) {
+        return ROW_HEIGHT*row + this.searchBarHeight;
+    }
+    onTabDoubleClick() {
+        console.log("tab double click");
+        var index = -1;
+        for (var i = 0; i < this.props.conversations.length; i++) {
+            var conv = this.props.conversations[i];
+            if (conv.unread > 0) {
+                if (this.getRowContentOffset(i) > this.contentOffset.y) {
+                    index = i;
+                    break;
+                }
+            }
+        }
+
+        if (index == -1) {
+            for (var i = 0; i < this.props.conversations.length; i++) {
+                var conv = this.props.conversations[i];
+                if (conv.unread > 0) {
+                    index = i;
+                    break;
+                }
+            } 
+        }
+
+        if (index == -1) {
+            return;
+        }
+
+        if (this.getRowContentOffset(index) != this.contentOffset.y) {
+            this.listView.scrollTo({y:this.getRowContentOffset(index), animated:true});
+        }
+    }
+
+    onScroll(event) {
+        var {
+            contentSize,
+            contentInset,
+            contentOffset,
+            layoutMeasurement,
+        } = event.nativeEvent;
+
+        this.contentOffset = contentOffset;
+    }
+    
     handlePeerMessage(message) {
         console.log("handle peer message:", message, msgObj);
         var profile = ProfileDB.getInstance();

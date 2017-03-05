@@ -45,6 +45,7 @@ class Conversation extends BaseConversation {
             showSearchCancel:false,
             searchText:"",
         };
+        this.searchBarHeight = 44;
     }
     bindDeviceToken(deviceToken) {
         //bind device token
@@ -146,7 +147,7 @@ class Conversation extends BaseConversation {
             animated:false,
         });
     }
-
+    
     render() {
         var marginTop = this.state.showSearchCancel ? 22 : 0;
         var left = this.state.showSearchCancel ? 0: WIDTH;
@@ -160,10 +161,12 @@ class Conversation extends BaseConversation {
             }
             self.searchBar.blur();
         }
-        
+
         return (
             <View style={{flex:1, marginTop:marginTop}}>
                 <ListView
+                    ref = {(r) => {this.listView = r}}
+                    onScroll={this.onScroll.bind(this)}
                     enableEmptySections={true}
                     dataSource={this.state.dataSource}
                     renderHeader={this.renderSearchBar.bind(this)}
