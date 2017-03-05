@@ -21,9 +21,23 @@ import BaseConversation from './BaseConversation';
 import Searchable from './Searchable';
 
 class Conversation extends BaseConversation {
+    static navigatorButtons = {
+        rightButtons: [
+            {
+                title: '+', 
+                id: 'new', 
+                showAsAction: 'ifRoom' 
+            },
+        ]
+    };
+    
     constructor(props) {
         super(props);
 
+        this._onRegistered = this._onRegistered.bind(this);
+        this._onRegistrationError = this._onRegistrationError.bind(this);
+
+        
         const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
         this.state = {
             dataSource: ds.cloneWithRows([]),
@@ -32,7 +46,55 @@ class Conversation extends BaseConversation {
             searchText:"",
         };
     }
-    
+    bindDeviceToken(deviceToken) {
+        //bind device token
+        var profile = ProfileDB.getInstance();
+        var token = profile.gobelieveToken
+        var url = SDK_API_URL + "/device/bind";
+        var obj = {"apns_device_token":deviceToken};
+        fetch(url, {
+            method:"POST",  
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                "Authorization": "Bearer " + token,
+            },
+            body:JSON.stringify(obj),
+        }).then((response) => {
+            console.log("bind apns device token status:", response.status);
+        }).catch((error) => {
+            console.log("bind apns device token error:", error);
+        });
+    }
+
+    _onRegistered(r) {
+        console.log("apns device token:", r);
+        var deviceToken = r;
+        this.bindDeviceToken(deviceToken);
+    }
+
+    _onRegistrationError(e) {
+        console.log("register error:", e);
+    }
+
+    componentWillMount() {
+        super.componentWillMount();
+        PushNotificationIOS.addEventListener('register', this._onRegistered);
+        PushNotificationIOS.addEventListener('registrationError', this._onRegistrationError);
+        PushNotificationIOS.requestPermissions();
+    }
+
+    componetWillUnmount() {
+        super.componetWillUnmount();
+        PushNotificationIOS.removeEventListener('register', this._onRegistered);
+        PushNotificationIOS.removeEventListener('registrationError', this._onRegistrationError);
+    }
+
+    setApplicationIconBadgeNumber(badge) {
+        super.setApplicationIconBadgeNumber(badge);
+        PushNotificationIOS.setApplicationIconBadgeNumber(badge);
+    }
+
     //search function
     onFocus() {
         console.log("on focus");

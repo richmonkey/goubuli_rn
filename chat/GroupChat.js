@@ -65,6 +65,7 @@ export class BaseGroupChat extends Chat {
                            this.scrollToTop(false);
                        }, 0);
                    });
+            this.state.canLoadNewContent = true;            
             
         } else {
             db.getMessages(this.props.receiver)
@@ -78,6 +79,7 @@ export class BaseGroupChat extends Chat {
                   console.log("set messages:", msgs.length);
                   this.props.dispatch(setMessages(msgs));
               });
+            this.state.canLoadNewContent = false;
         }
     }
 

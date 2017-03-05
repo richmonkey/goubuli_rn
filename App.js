@@ -18,6 +18,7 @@ import {
     NetInfo,
     AppState,
     View,
+    Platform,
     AsyncStorage,
     NativeModules,
     NativeAppEventEmitter,
@@ -109,6 +110,15 @@ var app = {
     handleAppStateChange: function(currentAppState) {
         console.log("app state:", currentAppState);
         if (currentAppState == "background") {
+            if (this.uid > 0 && Platform.OS == 'ios') {
+                var state = this.store.getState();
+                var newCount = 0;
+                state.conversations.forEach((conv) => {
+                    newCount += conv.unread;
+                });
+                im.sendUnreadCount(newCount);
+            }
+            console.log("send unread count:", newCount);
             im.enterBackground();
         } else if (currentAppState == "active") {
             im.enterForeground();

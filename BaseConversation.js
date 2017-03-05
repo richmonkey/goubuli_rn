@@ -63,9 +63,7 @@ export default class BaseConversation extends React.Component {
         this.contacts = [];
         this.groups = [];
         
-        this._onRegistered = this._onRegistered.bind(this);
-        this._onRegistrationError = this._onRegistrationError.bind(this);
-        
+    
         this.props.navigator.setOnNavigatorEvent(this.onNavigatorEvent.bind(this));
     }
 
@@ -87,38 +85,6 @@ export default class BaseConversation extends React.Component {
             }
         }
     }
-
-    bindDeviceToken(deviceToken) {
-        //bind device token
-        var profile = ProfileDB.getInstance();
-        var token = profile.gobelieveToken
-        var url = SDK_API_URL + "/device/bind";
-        var obj = {"apns_device_token":deviceToken};
-        fetch(url, {
-            method:"POST",  
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                "Authorization": "Bearer " + token,
-            },
-            body:JSON.stringify(obj),
-        }).then((response) => {
-            console.log("bind apns device token status:", response.status);
-        }).catch((error) => {
-            console.log("bind apns device token error:", error);
-        });
-    }
-
-    _onRegistered(r) {
-        console.log("apns device token:", r);
-        var deviceToken = r;
-        this.bindDeviceToken(deviceToken);
-    }
-
-    _onRegistrationError(e) {
-        console.log("register error:", e);
-    }
-
 
     handlePeerMessage(message) {
         console.log("handle peer message:", message, msgObj);
@@ -285,9 +251,9 @@ export default class BaseConversation extends React.Component {
                 type:CONVERSATION_GROUP,
                 groupID:groupID,
                 name:cid,
-                timestamp:m.timestamp,
+                timestamp:message.timestamp,
                 unread:0,
-                message:m,
+                message:message,
             };
 
             var group = this.groups.find((group)=> {
@@ -607,14 +573,15 @@ export default class BaseConversation extends React.Component {
                    });
                    return Promise.all([convs].concat(ps));
                }).then((results) => {
+                   var newCount = 0;
                    var convs = results[0];
                    for (var i = 0; i < convs.length; i++) {
                        var conv = convs[i];
                        conv.unread = results[i+1];
+                       newCount += conv.unread;
                    }
                    this.props.dispatch(setConversations(convs));
                }).catch((err) => {
-                   
                    console.log("err:", err);
                });
         
@@ -653,12 +620,11 @@ export default class BaseConversation extends React.Component {
         this.expires = profile.expires;
         
         this.loadConversations();
+    }
 
-        if (Platform.OS === 'ios') {
-            PushNotificationIOS.addEventListener('register', this._onRegistered);
-            PushNotificationIOS.addEventListener('registrationError', this._onRegistrationError);
-            PushNotificationIOS.requestPermissions();
-        }
+    setApplicationIconBadgeNumber(newCount) {
+        var badge = {badge:newCount ? newCount : null, tabIndex:0};
+        this.props.navigator.setTabBadge(badge);
     }
 
     componetWillUnmount() {
@@ -667,17 +633,26 @@ export default class BaseConversation extends React.Component {
         im.stop();
 
         this.listener.remove();
-        
-        if (Platform.OS === 'ios') {
-            PushNotificationIOS.removeEventListener('register', this._onRegistered);
-            PushNotificationIOS.removeEventListener('registrationError', this._onRegistrationError);
-        }
     }
     
     componentWillReceiveProps(nextProps) {
         if (this.props.conversations === nextProps.conversations) {
             return;
         }
+        var oldNewCount = 0;
+        var newCount = 0;
+        this.props.conversations.forEach((conv) => {
+            oldNewCount += conv.unread;
+        })
+        
+        nextProps.conversations.forEach((conv) => {
+            newCount += conv.unread;
+        });
+
+        if (oldNewCount != newCount) {
+            this.setApplicationIconBadgeNumber(newCount);
+        }
+        
         this.setState({
             dataSource: this.state.dataSource.cloneWithRows(nextProps.conversations),
         });

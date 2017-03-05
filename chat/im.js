@@ -67,6 +67,8 @@ IMService.MSG_RT = 17;
 IMService.MSG_ENTER_ROOM = 18;
 IMService.MSG_LEAVE_ROOM = 19;
 IMService.MSG_ROOM_IM = 20;
+IMService.MSG_SYSTEM = 21;
+IMService.MSG_UNREAD_COUNT = 22;
 
 IMService.MSG_CUSTOMER = 24;
 IMService.MSG_CUSTOMER_SUPPORT = 25;
@@ -742,8 +744,22 @@ IMService.prototype.clearSuperGroupSyncKey = function() {
     this.groupSyncKeys = {};
 };
 
+IMService.prototype.sendUnreadCount = function(unread) {
+    if (this.connectState != IMService.STATE_CONNECTED) {
+        return false;
+    }
 
-IMService.prototype.sendPeerMessage = function (msg) {
+    var buf = new Buffer(4);
+    var pos = 0;
+
+    htonl(buf, pos, unread)
+    pos += 4;
+
+    var r = this.send(IMService.MSG_UNREAD_COUNT, buf);
+    return r;
+};
+
+IMService.prototype.sendPeerMessage = function(msg) {
     if (this.connectState != IMService.STATE_CONNECTED) {
         return false;
     }

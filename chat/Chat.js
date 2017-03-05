@@ -61,7 +61,7 @@ export default class Chat extends React.Component {
             recordingColor:"transparent",
 
             canLoadMoreContent:true,
-            canLoadNewContent:true,
+            canLoadNewContent:false,
             
             currentMetering:0,
         };
