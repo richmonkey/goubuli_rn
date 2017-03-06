@@ -1,10 +1,12 @@
 package com.beetle.goubuli;
 
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 
 import com.airbnb.android.react.maps.MapsPackage;
 import com.oblador.vectoricons.VectorIconsPackage;
 import com.rnfs.RNFSPackage;
+import com.xiaomi.mipush.sdk.MiPushClient;
 import com.zmxv.RNSound.RNSoundPackage;
 import com.remobile.toast.RCTToastPackage;
 import com.rnim.rn.audio.ReactNativeAudioPackage;
@@ -29,6 +31,14 @@ public class MainApplication extends NavigationApplication {
   }
 
 
+  static public MainApplication getInstance() {
+    return (MainApplication)instance;
+  }
+
+  @Override
+  public void onCreate() {
+    super.onCreate();
+  }
 
   @NonNull
   @Override

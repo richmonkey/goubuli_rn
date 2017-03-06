@@ -31,6 +31,7 @@ public class LocationPackage implements ReactPackage {
         List<NativeModule> modules = new ArrayList<NativeModule>();
 
         modules.add(new LocationPickerModule(reactContext));
+        modules.add(new XiaoMiModule(reactContext));
 
         return modules;
     }

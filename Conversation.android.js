@@ -9,13 +9,18 @@ import {
     TouchableHighlight,
     PushNotificationIOS,
     Dimensions,
+    DeviceEventEmitter,
 } from 'react-native';
 import {connect} from 'react-redux'
 var SearchBar = require('react-native-search-bar');
+import { NativeModules } from 'react-native';
+
 const screen = Dimensions.get('window');
 const WIDTH = screen.width;
 const HEIGHT = screen.height;
 
+import ProfileDB from "./model/ProfileDB";
+import {SDK_API_URL} from './config';
 import BaseConversation from './BaseConversation';
 
 class Conversation extends BaseConversation {
@@ -53,6 +58,48 @@ class Conversation extends BaseConversation {
                 this.search();
             }
         }
+    }
+
+    componentWillMount() {
+        super.componentWillMount();
+
+        var self = this;
+        var xiaomi = NativeModules.XiaoMi;
+        this.xmListener = DeviceEventEmitter.addListener('xiaomi_device_token',
+                                                         function(e: Event) {
+                                                             console.log("xiaomi event:", e);
+                                                             var deviceToken = e.device_token;
+                                                             self.bindDeviceToken(deviceToken);
+                                                             
+
+        });
+        xiaomi.register();
+    }
+
+    componetWillUnmount() {
+        super.componetWillUnmount();
+        this.xmListener.remove();
+    }
+
+    bindDeviceToken(deviceToken) {
+        //bind device token
+        var profile = ProfileDB.getInstance();
+        var token = profile.gobelieveToken
+        var url = SDK_API_URL + "/device/bind";
+        var obj = {"xm_device_token":deviceToken};
+        fetch(url, {
+            method:"POST",  
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                "Authorization": "Bearer " + token,
+            },
+            body:JSON.stringify(obj),
+        }).then((response) => {
+            console.log("bind xiaomi device token status:", response.status);
+        }).catch((error) => {
+            console.log("bind xiaomi device token error:", error);
+        });
     }
     
     search() {
