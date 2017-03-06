@@ -17,6 +17,8 @@ const screen = Dimensions.get('window');
 const WIDTH = screen.width;
 const HEIGHT = screen.height;
 
+import ProfileDB from "./model/ProfileDB";
+import {SDK_API_URL} from './config';
 import BaseConversation from './BaseConversation';
 import Searchable from './Searchable';
 
@@ -47,6 +49,7 @@ class Conversation extends BaseConversation {
         };
         this.searchBarHeight = 44;
     }
+    
     bindDeviceToken(deviceToken) {
         //bind device token
         var profile = ProfileDB.getInstance();
