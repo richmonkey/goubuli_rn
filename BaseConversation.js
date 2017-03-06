@@ -696,7 +696,7 @@ export default class BaseConversation extends React.Component {
 
     updateGroup() {
         var self = this;
-        var url = SDK_API_URL + "/client/groups";
+        var url = SDK_API_URL + "/client/groups?fields=members";
         var profile = ProfileDB.getInstance();
         var accessToken = profile.gobelieveToken;
         var groupDB = GroupDB.getInstance();
@@ -723,6 +723,8 @@ export default class BaseConversation extends React.Component {
                 groups.forEach((group) => {
                     group.timestamp = 0;
                     groupDB.insertGroup(group);
+
+                    
                 });
                 this.groups = groups;
                 var convs = this.props.conversations;
