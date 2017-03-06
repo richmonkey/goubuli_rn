@@ -42,7 +42,8 @@ console.log("document path:", AudioUtils.DocumentDirectoryPath);
 
 import InputToolbar, {MIN_INPUT_TOOLBAR_HEIGHT} from './InputToolbar';
 import MessageContainer from './MessageContainer';
-import {playMessage, listenMessage} from './actions';
+import {playMessage, listenMessage, failMessage} from './actions';
+import {MESSAGE_FLAG_FAILURE} from './IMessage';
 
 var IMService = require("./im");
 
@@ -301,7 +302,11 @@ export default class Chat extends React.Component {
             var content = JSON.stringify(obj);
             message.content = content;
             message.audio = obj.audio;
-            self.sendMessage(message);
+            var r = self.sendMessage(message);
+            if (!r) {
+                self.setMessageFailure(message);
+                self.props.dispatch(failMessage(message.id));
+            }
             this.updateMessageAttachment(message.id, url);
         })
     }
@@ -333,8 +338,13 @@ export default class Chat extends React.Component {
         p.then((rowid)=> {
             message.id = rowid;
             message._id = rowid;
+            
             self.addMessage(message);
-            self.sendMessage(message);
+            var r = self.sendMessage(message);
+            if (!r) {
+                self.setMessageFailure(message);
+                self.props.dispatch(failMessage(message.id));
+            }
         });
     }
 
@@ -454,13 +464,18 @@ export default class Chat extends React.Component {
             this.updateMessageAttachment(message.id, url);
             var content = JSON.stringify(obj);
             message.content = content;
-            self.sendMessage(message);
+            var r = self.sendMessage(message);
+            if (!r) {
+                self.setMessageFailure(message);
+                self.props.dispatch(failMessage(message.id));
+            }
+
         }).catch((err) => {
             console.log("upload image err:", err);
         });
     }
 
-    sendLocationImage(longitude, latitude, address) {
+    sendLocationMessage(longitude, latitude, address) {
         console.log("longitude:", longitude,
                     " latitude:", latitude,
                     " address:", address);
@@ -505,7 +520,11 @@ export default class Chat extends React.Component {
             message._id = rowid;
 
             this.addMessage(message);
-            this.sendMessage(message);
+            var r = this.sendMessage(message);
+            if (!r) {
+                this.setMessageFailure(message);
+                this.props.dispatch(failMessage(message.id));
+            }
         });
     }
     
@@ -571,9 +590,9 @@ export default class Chat extends React.Component {
     }
 
     onLocation(coordinate) {
-        this.sendLocationImage(coordinate.longitude,
-                               coordinate.latitude,
-                               coordinate.address);
+        this.sendLocationMessage(coordinate.longitude,
+                                 coordinate.latitude,
+                                 coordinate.address);
     }
 
     handleLocationClick() {

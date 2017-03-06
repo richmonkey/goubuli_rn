@@ -8,8 +8,19 @@ import RCTDeviceEventEmitter from 'RCTDeviceEventEmitter';
 import {AudioUtils} from 'react-native-audio';
 
 import PeerMessageDB from './PeerMessageDB.js'
-import {setMessages, addMessage, addMessages, insertMessages, ackMessage} from './actions'
-import {MESSAGE_FLAG_FAILURE, MESSAGE_FLAG_LISTENED} from './IMessage';
+import {
+    setMessages,
+    addMessage,
+    addMessages,
+    insertMessages,
+    ackMessage,
+    failMessage
+} from './actions';
+
+import {
+    MESSAGE_FLAG_FAILURE,
+    MESSAGE_FLAG_LISTENED
+} from './IMessage';
 
 var IMService = require("./im");
 
@@ -46,6 +57,14 @@ export class BasePeerChat extends Chat {
             this.props.dispatch(ackMessage(message.id));
         }
     }
+
+    onPeerMessageFailure(message) {
+        if ((message.sender == this.props.peer ||
+             message.receiver == this.props.peer) &&
+            !this.readonly) {
+            this.props.dispatch(failMessage(message.id));
+        }
+    }
     
     componentWillMount() {
         super.componentWillMount();
@@ -55,6 +74,10 @@ export class BasePeerChat extends Chat {
 
         console.log("on aaaaa:", this.onPeerMessageAck);
 
+        var f3 = (m) => {
+            this.onPeerMessageFailure(m);
+        }
+        
         var f2 = (m) => {
             this.onPeerMessageAck(m);
         }
@@ -64,7 +87,8 @@ export class BasePeerChat extends Chat {
         }
         this.listener = RCTDeviceEventEmitter.addListener('peer_message', f1)
         this.ackListener = RCTDeviceEventEmitter.addListener('peer_message_ack', f2);
-
+        this.failListener = RCTDeviceEventEmitter.addListener('peer_message_failure', f3);
+        
         this.readonly = this.props.messageID ? true : false;
         var db = PeerMessageDB.getInstance();
 
@@ -110,6 +134,7 @@ export class BasePeerChat extends Chat {
 
         this.listener.remove();
         this.ackListener.remove();
+        this.failListener.remove();
     }
 
     parseMessageContent(m) {
@@ -196,12 +221,16 @@ export class BasePeerChat extends Chat {
         var db = PeerMessageDB.getInstance();
         db.updateFlags(message.id, f);
     }
+    
+    setMessageFailure(message) {
+        var f = message.flags | MESSAGE_FLAG_FAILURE;
+        var db = PeerMessageDB.getInstance();
+        db.updateFlags(message.id, f);
+    }
 
     sendMessage(message) {
         var im = IMService.instance;
-        if (im.connectState == IMService.STATE_CONNECTED) {
-            im.sendPeerMessage(message);
-        }
+        return im.sendPeerMessage(message);
     }
 
     _loadMoreContentAsync = async () => {

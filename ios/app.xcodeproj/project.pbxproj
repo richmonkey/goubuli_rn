@@ -27,6 +27,7 @@
 		46CAC0F5B1484406904F8B9E /* libsqlite3.0.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 5AA85691DBCE40E6B72D360A /* libsqlite3.0.tbd */; };
 		5E9157361DD0AC6A00FF2AA8 /* libRCTAnimation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5E9157331DD0AC6500FF2AA8 /* libRCTAnimation.a */; };
 		6D8EEFB21E642DF600FCEE6C /* libRCTPushNotification.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6D8EEFAF1E642DD900FCEE6C /* libRCTPushNotification.a */; };
+		6DA5FB261E6D7F7600C1D7F6 /* received.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 6DA5FB251E6D7F7600C1D7F6 /* received.mp3 */; };
 		6DADEB001E6045DE008579C7 /* libART.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6DADEADE1E6045D3008579C7 /* libART.a */; };
 		6DF6D2D11E365DB6003AA63B /* www in Resources */ = {isa = PBXBuildFile; fileRef = 6DF6D2D01E365DB6003AA63B /* www */; };
 		7A018FFA78FD493FA275D43E /* libRNGeocoder.a in Frameworks */ = {isa = PBXBuildFile; fileRef = EB62096106BF47BCBD8AA8C2 /* libRNGeocoder.a */; };
@@ -394,6 +395,7 @@
 		6D57F5071E64334D00D04523 /* app.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = app.entitlements; path = app/app.entitlements; sourceTree = "<group>"; };
 		6D57F5081E6433C500D04523 /* MapKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MapKit.framework; path = System/Library/Frameworks/MapKit.framework; sourceTree = SDKROOT; };
 		6D8EEFA91E642DD900FCEE6C /* RCTPushNotification.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTPushNotification.xcodeproj; path = "../node_modules/react-native/Libraries/PushNotificationIOS/RCTPushNotification.xcodeproj"; sourceTree = "<group>"; };
+		6DA5FB251E6D7F7600C1D7F6 /* received.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = received.mp3; sourceTree = "<group>"; };
 		6DADEAD81E6045D2008579C7 /* ART.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = ART.xcodeproj; path = "../node_modules/react-native/Libraries/ART/ART.xcodeproj"; sourceTree = "<group>"; };
 		6DF6D2D01E365DB6003AA63B /* www */ = {isa = PBXFileReference; lastKnownFileType = folder; path = www; sourceTree = "<group>"; };
 		6E9FB6914CBB48BCBB84B407 /* libRNImagePicker.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRNImagePicker.a; sourceTree = "<group>"; };
@@ -548,6 +550,7 @@
 		13B07FAE1A68108700A75B9A /* app */ = {
 			isa = PBXGroup;
 			children = (
+				6DA5FB251E6D7F7600C1D7F6 /* received.mp3 */,
 				6D57F5071E64334D00D04523 /* app.entitlements */,
 				6DF6D2D01E365DB6003AA63B /* www */,
 				008F07F21AC5B25A0029DE68 /* main.jsbundle */,
@@ -1310,6 +1313,7 @@
 				E51AA74D850D4187BE9EFFBC /* EvilIcons.ttf in Resources */,
 				F0FEBEE66C7E491491D88277 /* FontAwesome.ttf in Resources */,
 				ED3D870AB0534B71BF96B511 /* Foundation.ttf in Resources */,
+				6DA5FB261E6D7F7600C1D7F6 /* received.mp3 in Resources */,
 				FBAA8173D3244FE0B0E2F4A3 /* Ionicons.ttf in Resources */,
 				9C1249B0CBBA40A2AA537DE5 /* MaterialCommunityIcons.ttf in Resources */,
 				DE4A79DF11EB451EBF8CF8F7 /* MaterialIcons.ttf in Resources */,

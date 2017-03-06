@@ -8,7 +8,15 @@ import RCTDeviceEventEmitter from 'RCTDeviceEventEmitter';
 import {AudioUtils} from 'react-native-audio';
 
 import GroupMessageDB from './GroupMessageDB.js'
-import {setMessages, addMessage, addMessages, insertMessages, ackMessage} from './actions'
+import {
+    setMessages,
+    addMessage,
+    addMessages,
+    insertMessages,
+    ackMessage,
+    failMessage
+} from './actions';
+
 import {MESSAGE_FLAG_FAILURE, MESSAGE_FLAG_LISTENED} from './IMessage';
 
 var IMService = require("./im");
@@ -26,22 +34,28 @@ export class BaseGroupChat extends Chat {
         var im = IMService.instance;
         im.addObserver(this);
 
-        this.listener = RCTDeviceEventEmitter.addListener('group_message',
-                                                          (message)=>{
-                                                              if (message.receiver == this.props.groupID) {
-                                                                  this.downloadAudio(message);
-                                                                  this.props.dispatch(addMessage(message));
-                                                                  this.scrollToBottom();
-                                                              }
-                                                          });
+        var f1 = (message) => {
+            if (message.receiver == this.props.groupID) {
+                this.downloadAudio(message);
+                this.props.dispatch(addMessage(message));
+                this.scrollToBottom();
+            }
+        }
+        this.listener = RCTDeviceEventEmitter.addListener('group_message', f1);
 
+        var f2 = (message)=>{
+            if (message.receiver == this.props.groupID) {
+                this.props.dispatch(ackMessage(message.id));
+            }
+        }
+        this.ackListener = RCTDeviceEventEmitter.addListener('group_message_ack', f2);
 
-        this.ackListener = RCTDeviceEventEmitter.addListener('group_message_ack',
-                                                             (message)=>{
-                                                                 if (message.receiver == this.props.groupID) {
-                                                                     this.props.dispatch(ackMessage(message.id));
-                                                                 }
-                                                             });
+        var f3 = (message) => {
+            if (message.receiver == this.props.groupID) {
+                this.props.dispatch(failMessage(message.id));
+            }
+        }
+        this.failListener =  RCTDeviceEventEmitter.addListener('group_message_failure', f3);
         
         var db = GroupMessageDB.getInstance();
 
@@ -80,7 +94,6 @@ export class BaseGroupChat extends Chat {
         }
     }
 
-
     componentWillUnmount() {
         super.componentWillUnmount();
         
@@ -89,6 +102,7 @@ export class BaseGroupChat extends Chat {
 
         this.listener.remove();
         this.ackListener.remove();
+        this.failListener.remove();
     }
 
     parseMessageContent(m) {
@@ -148,11 +162,15 @@ export class BaseGroupChat extends Chat {
         db.updateFlags(message.id, f);
     }
 
+    setMessageFailure(message) {
+        var f = message.flags | MESSAGE_FLAG_FAILURE;
+        var db = GroupMessageDB.getInstance();
+        db.updateFlags(message.id, f);
+    }
+    
     sendMessage(message) {
         var im = IMService.instance;
-        if (im.connectState == IMService.STATE_CONNECTED) {
-            im.sendGroupMessage(message);
-        }
+        return im.sendGroupMessage(message);
     }
 
     _loadMoreContentAsync = async () => {

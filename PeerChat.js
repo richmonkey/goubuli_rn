@@ -4,6 +4,7 @@ import {setUnread, updateConversation, setConversation} from './actions';
 import {BasePeerChat} from "./chat/PeerChat.js";
 import ConversationDB from './model/ConversationDB';
 import { NativeModules } from 'react-native';
+import {CONVERSATION_GROUP, CONVERSATION_PEER} from './IConversation';
 
 class PeerChat extends BasePeerChat {
     static navigatorStyle = {
@@ -17,6 +18,15 @@ class PeerChat extends BasePeerChat {
     
     constructor(props) {
         super(props);
+    }
+
+    componentWillMount() {
+        super.componentWillMount();
+        var conv = {
+            cid:"p_" + this.props.receiver,
+            type:CONVERSATION_PEER,
+        };
+        this.props.dispatch(setConversation(conv));
     }
     
     componentWillUnmount() {
@@ -59,8 +69,9 @@ class PeerChat extends BasePeerChat {
                                   coordinate.longitude,
                                   coordinate.latitude,
                                   coordinate.address);
-                      this.sendLocationImage(coordinate.longitude,
-                                             coordinate.latitude);
+                      this.sendLocationMessage(coordinate.longitude,
+                                               coordinate.latitude,
+                                               coordinate.address);
                   })
                   .catch((e) => {
                       console.log("location picker err:", e);

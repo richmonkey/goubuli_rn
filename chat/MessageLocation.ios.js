@@ -25,6 +25,8 @@ export default class MessageLocation extends React.Component {
                         ios: `http://maps.apple.com/?ll=${this.props.currentMessage.location.latitude},${this.props.currentMessage.location.longitude}`,
                         android: `http://maps.google.com/?q=${this.props.currentMessage.location.latitude},${this.props.currentMessage.location.longitude}`
                     });
+                    console.log("location url:", url);
+                    
                     Linking.canOpenURL(url).then(supported => {
                         if (supported) {
                             return Linking.openURL(url);

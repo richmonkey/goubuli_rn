@@ -117,15 +117,14 @@ var app = {
                 state.conversations.forEach((conv) => {
                     newCount += conv.unread;
                 });
+                console.log("send unread count:", newCount);
                 im.sendUnreadCount(newCount);
             }
-            console.log("send unread count:", newCount);
             im.enterBackground();
         } else if (currentAppState == "active") {
             im.enterForeground();
         }
     },
-
 
     runApp: function(profile) {
         this.store.dispatch({type:"set_profile", profile:profile});

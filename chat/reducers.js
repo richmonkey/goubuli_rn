@@ -3,11 +3,12 @@ import {
     ADD_MESSAGE,
     INSERT_MESSAGES,
     ACK_MESSAGE,
+    FAIL_MESSAGE,
     PLAY_MESSAGE,
     LISTEN_MESSAGE,
 } from './actions';
 
-import {MESSAGE_FLAG_LISTENED} from "./IMessage";
+import {MESSAGE_FLAG_LISTENED, MESSAGE_FLAG_FAILURE, MESSAGE_FLAG_ACK} from "./IMessage";
 
 export function messagesReducer(state = [], action) {
     switch(action.type) {
@@ -32,10 +33,32 @@ export function messagesReducer(state = [], action) {
             if (index == -1) {
                 return state;
             } else {
-                var m = Object.assign({}, state[index], {ack:true});
+                var f = state[index].flags;
+                f = f | MESSAGE_FLAG_ACK;
+                var m = Object.assign({}, state[index], {ack:true, flags:f});
                 return [...state.slice(0, index), m, ...state.slice(index+1, state.length)];
             }
             break;
+        case FAIL_MESSAGE:
+            var index = -1;
+            for (var i = 0; i < state.length; i++) {
+                var m = state[i];
+                if (m.id == action.msgID) {
+                    index = i;
+                    break;
+                }
+            }
+            
+            if (index == -1) {
+                return state;
+            } else {
+                var f = state[index].flags;
+                f = f | MESSAGE_FLAG_FAILURE;
+                var m = Object.assign({}, state[index], {failure:true, flags:f});
+                return [...state.slice(0, index), m, ...state.slice(index+1, state.length)];
+            }
+            break;
+            
         case PLAY_MESSAGE:
             var index = state.findIndex((m) => {
                 return m.id == action.msgID;

@@ -8,6 +8,7 @@ import ConversationDB from './model/ConversationDB'
 import {setUnread, updateConversation} from './actions'
 import {setConversation} from './actions';
 import { NativeModules } from 'react-native';
+import {CONVERSATION_GROUP, CONVERSATION_PEER} from './IConversation';
 
 class GroupChat extends BaseGroupChat {
     static navigatorButtons = {
@@ -74,6 +75,15 @@ class GroupChat extends BaseGroupChat {
         }
     }
 
+    componentWillMount() {
+        super.componentWillMount();
+        var conv = {
+            cid:"g_" + this.props.receiver,
+            type:CONVERSATION_GROUP,
+        };
+        this.props.dispatch(setConversation(conv));
+    }
+
     componentWillUnmount() {
         super.componentWillUnmount();
 
@@ -118,8 +128,9 @@ class GroupChat extends BaseGroupChat {
                                   coordinate.longitude,
                                   coordinate.latitude,
                                   coordinate.address);
-                      this.sendLocationImage(coordinate.longitude,
-                                             coordinate.latitude);
+                      this.sendLocationMessage(coordinate.longitude,
+                                             coordinate.latitude,
+                                             coordinate.address);
                   })
                   .catch((e) => {
                       console.log("location picker err:", e);

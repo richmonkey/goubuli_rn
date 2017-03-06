@@ -5,6 +5,7 @@ export const ADD_MESSAGE = "add_message";
 export const ADD_MESSAGES = "add_messages";
 export const INSERT_MESSAGES = "insert_messages";
 export const ACK_MESSAGE = "ack_message";
+export const FAIL_MESSAGE = "fail_message";
 export const PLAY_MESSAGE = "play_message";
 export const LISTEN_MESSAGE = "listen_message";
 
@@ -85,6 +86,13 @@ export function ackMessage(msgID) {
     return {
         type:ACK_MESSAGE,
         msgID:msgID
+    }
+}
+
+export function failMessage(msgID) {
+    return {
+        type:FAIL_MESSAGE,
+        msgID:msgID,
     }
 }
 

@@ -9,6 +9,7 @@ import {
     TouchableHighlight,
     PushNotificationIOS,
     Dimensions,
+    Vibration,
 } from 'react-native';
 
 
@@ -17,6 +18,7 @@ import RCTDeviceEventEmitter from 'RCTDeviceEventEmitter';
 import moment from 'moment/min/moment-with-locales.min';
 var SQLite = require('react-native-sqlite-storage');
 var SearchBar = require('react-native-search-bar');
+var Sound = require('react-native-sound');
 
 import {setMessages, addMessage, ackMessage} from './chat/actions'
 
@@ -65,6 +67,7 @@ export default class BaseConversation extends React.Component {
         this.contacts = [];
         this.groups = [];
 
+        this.lastVibrateTS = 0;
         this.contentOffset = {x:0, y:0};
         this.tabCount = 0;
         this.searchBarHeight = 0;
@@ -149,6 +152,40 @@ export default class BaseConversation extends React.Component {
         } = event.nativeEvent;
 
         this.contentOffset = contentOffset;
+    }
+
+    //播放消息的提示音
+    playMessageSound() {
+        var now = new Date();
+        now = now.getTime();
+        //一秒内不能震动多次
+        if ((now - this.lastVibrateTS) < 1000) {
+            return;
+        }
+
+        this.lastVibrateTS = now;
+        var pattern;
+        if (Platform.OS === 'android') {
+            pattern = [0, 500, 200, 500];
+        } else {
+            pattern = [0, 1000, 2000, 3000];
+        }
+        
+        Vibration.vibrate(pattern);
+
+        var player = new Sound("received.mp3", Sound.MAIN_BUNDLE);
+        Sound.enable(true);
+        player.prepare((error) => {
+            if (error) {
+                console.log('failed to load the sound', error);
+                return;
+            }
+
+            player.play((success)=> {
+                player.stop();
+                player.release();
+            });
+        });
     }
     
     handlePeerMessage(message) {
@@ -243,6 +280,7 @@ export default class BaseConversation extends React.Component {
         
         console.log("new conv:", newConv);
         this.props.dispatch(updateConversation(conv, index));
+        this.playMessageSound();
     }
 
     handleMessageACK(msg) {
@@ -351,6 +389,7 @@ export default class BaseConversation extends React.Component {
         //index==-1 表示添加
         console.log("new conv:", newConv);
         this.props.dispatch(updateConversation(conv, index));
+        this.playMessageSound();
     }
 
     handleGroupMessageACK(msg) {

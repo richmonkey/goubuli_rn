@@ -45,6 +45,8 @@ export default class MessageLocation extends React.Component {
             <TouchableOpacity style={styles.container}
                               onPress={onPress}>
                 <Image  style={styles.mapView}
+                        borderTopLeftRadius={13}
+                        borderTopRightRadius={13}
                         source={require("./Images/location.png")}>
                     <Text textAlign="center"
                           numberOfLines={2}>
