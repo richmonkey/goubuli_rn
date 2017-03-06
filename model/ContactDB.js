@@ -156,21 +156,7 @@ export default class ContactDB {
         });
     }
 
-    updateSyncKey(syncKey) {
-        var self = this;
-        return new Promise(function(resolve, reject) {
-            self.db.executeSql("REPLACE INTO sync(id, sync_key) VALUES (?, ?)",
-                               [1, syncKey],
-                               function(result) {
-                                   console.log("update sync key result:", result);
-                                   resolve();
-                               },
-                               function(error) {
-                                   reject(error);
-                               });
-        });
-    }
-
+ 
     getContacts() {
         var self = this;
         return new Promise(function(resolve, reject) {
@@ -213,25 +199,5 @@ export default class ContactDB {
         });
     }
 
-    getSyncKey() {
-        var self = this;
-        return new Promise(function(resolve, reject) {
-            self.db.executeSql('SELECT sync_key FROM sync',
-                               [],
-                               function(result) {
-                                   var syncKey = 0;
-                                   var msgs = [];
-                                   for (var i = 0; i < result.rows.length; i++) {
-                                       var row = result.rows.item(i);
-                                       syncKey = row.sync_key;
-                                       break;
-                                   }
-                                   resolve(syncKey);
-                               },
-                               function(error) {
-                                   reject(error);
-                               });
-            
-        });        
-    }
+ 
 }

@@ -47,12 +47,11 @@ export class BaseGroupChat extends Chat {
 
         if (this.props.messageID) {
             //从搜索页面跳转来, 查看某一条消息
-            var p1 = db.getEarlierMessages(this.props.receiver, this.props.messageID, 2);
+            var p1 = db.getEarlierMessages(this.props.receiver, this.props.messageID);
             var p2 = db.getMessage(this.props.messageID);
-            var p3 = db.getLaterMessages(this.props.receiver, this.props.messageID);
-            Promise.all([p1, p2, p3])
+            Promise.all([p1, p2])
                    .then((results) => {
-                       var msgs = results[2].concat(results[1], results[0]);
+                       var msgs = [results[1]].concat(results[0]);
                        for (var i in msgs) {
                            var m = msgs[i];
                            m.receiver = m.group_id;
@@ -61,11 +60,9 @@ export class BaseGroupChat extends Chat {
                        }
                        console.log("set messages:", msgs.length);
                        this.props.dispatch(setMessages(msgs));
-                       setTimeout(() => {
-                           this.scrollToTop(false);
-                       }, 0);
                    });
-            this.state.canLoadNewContent = true;            
+            
+            this.state.canLoadNewContent = true;
             
         } else {
             db.getMessages(this.props.receiver)
@@ -119,22 +116,7 @@ export class BaseGroupChat extends Chat {
         } else if (obj.location) {
             m.location = obj.location;
         } else if (obj.notification) {
-            var notification = "";
-            var n = JSON.parse(obj.notification);
-            if (n.create) {
-                if (n.create.master == this.props.sender) {
-                    notification = `您创建了${n.create.name}群组`;
-                } else {
-                    notification = `您加入了${n.create.name}群组`;
-                }
-            } else if (n.add_member) {
-                notification = `${n.add_member.name}加入群`;
-            } else if (n.quit_group) {
-                notification = `${n.quit_group.name}离开群`;
-            } else if (n.disband) {
-                notification = "群组已解散";
-            }
-            m.notification = notification;
+            m.notification = obj.notification;
         }
         
         m.uuid = obj.uuid;

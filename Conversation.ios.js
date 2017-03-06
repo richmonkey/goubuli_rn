@@ -117,19 +117,39 @@ class Conversation extends BaseConversation {
         });
     }
 
+    onSearchBarChangeText(e) {
+        console.log("search bar change text:", e);
+        if (typeof(e) == 'string' && e) {
+            this.setState({searchText:e}, () => {
+                this.search();
+            });
+            
+        } else {
+            this.setState({searchText:""}, () => {
+                this.search();
+            });
+        }
+    }
+    
+    onSearchCancel() {
+        console.log("search cancel");
+        this.setState({searchText:""}, () => {
+            this.search();
+        });
+    }
 
     renderSearchBar() {
         return (
             <SearchBar
                 ref = {(r) => {this.searchBar = r}}
-                placeholder='Search'
+                placeholder='搜索'
                 text = {this.state.searchText}
                 showsCancelButton={this.state.showSearchCancel}
                 onFocus={this.onFocus.bind(this)}
                 onBlur={this.onBlur.bind(this)}
                 onChangeText={this.onSearchBarChangeText.bind(this)}
                 onSearchButtonPress={() => {console.log("search button press");}}
-                onCancelButtonPress={() => {console.log("search cancel");}}
+                onCancelButtonPress={this.onSearchCancel.bind(this)}
             />
         );
     }

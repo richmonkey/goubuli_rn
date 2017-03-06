@@ -36,6 +36,7 @@ import GroupMessageDB from './chat/GroupMessageDB';
 import ProfileDB from './model/ProfileDB';
 import GroupDB from './group/GroupDB';
 import ContactDB from './model/ContactDB';
+import SyncKeyDB from './model/SyncKeyDB';
 
 import Authentication from "./Authentication";
 import Login from "./Login";
@@ -144,6 +145,7 @@ var app = {
                                      });
         ContactDB.getInstance().setDB(db);
         GroupDB.getInstance().setDB(db);
+        SyncKeyDB.getInstance().setDB(db);
 
 
         dbName = `gobelieve_${profile.uid}.db`;

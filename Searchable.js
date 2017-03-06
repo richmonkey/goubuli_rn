@@ -224,22 +224,6 @@ var Searchable = {
                 }
             });        
     },
-
-    onSearchBarChangeText(e) {
-        console.log("change text:", e);
-        if (typeof(e) == 'string' && e) {
-            this.setState({searchText:e}, () => {
-                this.search();
-            });
-            
-        } else {
-            this.setState({searchText:""}, () => {
-                this.search();
-            });
-        }
-    },
-
-    
 }
 
 module.exports = Searchable;

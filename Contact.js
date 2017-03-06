@@ -16,8 +16,8 @@ var SQLite = require('react-native-sqlite-storage');
 
 import ProfileDB from "./model/ProfileDB";
 import ContactDB from "./model/ContactDB";
+import SyncKeyDB from './model/SyncKeyDB';
 import GroupDB from './group/GroupDB';
-
 import {API_URL} from "./config";
 
 class Contact extends React.Component {
@@ -96,7 +96,8 @@ class Contact extends React.Component {
                       db.deleteContacts(deletedContacts);
                   })
                   .then(() => {
-                      db.updateSyncKey(responseJson.sync_key);                      
+                      var syncKeyDB = SyncKeyDB.getInstance();
+                      syncKeyDB.updateContactSyncKey(responseJson.sync_key);
                   })
                   .then(() => {
                       return db.getDepartments();
@@ -138,7 +139,7 @@ class Contact extends React.Component {
         };
         
         return fetch(url, {
-            method:"POST",  
+            method:"POST",
             headers: {
                 'Accept': 'application/json',
             },
@@ -168,8 +169,8 @@ class Contact extends React.Component {
                 return Promise.reject(responseJson.error);
             }
         });
-        
     }
+    
     componentWillMount() {
         var profile = ProfileDB.getInstance();
         var db = ContactDB.getInstance();
@@ -200,7 +201,7 @@ class Contact extends React.Component {
 
             this.refreshToken()
                 .then(() => {
-                    return db.getSyncKey();
+                    return SyncKeyDB.getInstance().getContactSyncKey();
                 }).then((syncKey) => {
                     this.syncContact(syncKey);
                 }).catch((error) => {
@@ -208,10 +209,10 @@ class Contact extends React.Component {
                     alert(error);
                 });
         } else {
-            db.getSyncKey()
-              .then((syncKey)=> {
-                  this.syncContact(syncKey);
-              });
+            SyncKeyDB.getInstance().getContactSyncKey()
+                     .then((syncKey)=> {
+                         this.syncContact(syncKey);
+                     });
         }
     }
 
@@ -240,7 +241,7 @@ class Contact extends React.Component {
             var uid = profile.uid;
             var peer = contact.id;
             navigator.push({
-                title:"Chat",
+                title:contact.name,
                 screen:"chat.PeerChat",
                 navigatorStyle:{
                     tabBarHidden:true

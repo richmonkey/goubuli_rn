@@ -65,6 +65,7 @@ class GroupChat extends BaseGroupChat {
           });
 
     }
+    
     onNavigatorEvent(event) {
         if (event.type == 'NavBarButtonPress') { 
             if (event.id == 'setting') {
@@ -72,7 +73,6 @@ class GroupChat extends BaseGroupChat {
             }     
         }
     }
-
 
     componentWillUnmount() {
         super.componentWillUnmount();
@@ -82,8 +82,6 @@ class GroupChat extends BaseGroupChat {
 
         ConversationDB.getInstance().setUnread("g_" + this.props.receiver, 0);
     }
-
-
     
     addMessage(message) {
         super.addMessage(message);
@@ -104,22 +102,7 @@ class GroupChat extends BaseGroupChat {
         } else if (msgObj.location) {
             conv.content = "位置";
         } else if (msgObj.notification) {
-            var notification = "";
-            var n = JSON.parse(msgObj.notification);
-            if (n.create) {
-                if (n.create.master == this.props.sender) {
-                    notification = `您创建了${n.create.name}群组`;
-                } else {
-                    notification = `您加入了${n.create.name}群组`;
-                }
-            } else if (n.add_member) {
-                notification = `${n.add_member.name}加入群`;
-            } else if (n.quit_group) {
-                notification = `${n.quit_group.name}离开群`;
-            } else if (n.disband) {
-                notification = "群组已解散";
-            }
-            m.notification = notification;
+            m.notification = msgObj.notification;
         } else {
             conv.content = "";
         }

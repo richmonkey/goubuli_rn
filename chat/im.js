@@ -517,6 +517,12 @@ IMService.prototype.onMessage = function (data) {
         if (newSyncKey > this.syncKey) {
             this.syncKey = newSyncKey;
             this.sendSyncKey(this.syncKey);
+
+            this.observers.forEach(function(observer) { 
+                if (observer != null && "handleSyncKey" in observer){
+                    observer.handleSyncKey(newSyncKey);
+                }
+            });
         }
 
     } else if (cmd == IMService.MSG_SYNC_GROUP_NOTIFY) {
@@ -561,7 +567,13 @@ IMService.prototype.onMessage = function (data) {
         }
         if (newSyncKey > groupSyncKey) {
             this.groupSyncKeys[groupID] = newSyncKey;
-            this.sendGroupSyncKey(groupID, syncKey);
+            this.sendGroupSyncKey(groupID, newSyncKey);
+            
+            this.observers.forEach(function(observer) { 
+                if (observer != null && "handleGroupSyncKey" in observer) {
+                    observer.handleGroupSyncKey(groupID, newSyncKey);
+                }
+            });
         }
     } else {
         console.log("message command:" + cmd);

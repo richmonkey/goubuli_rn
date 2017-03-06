@@ -33,6 +33,7 @@ var IMService = require("./chat/im");
 
 import ConversationDB from './model/ConversationDB';
 import ProfileDB from "./model/ProfileDB";
+import SyncKeyDB from './model/SyncKeyDB';
 import PeerMessageDB from './chat/PeerMessageDB';
 import GroupMessageDB from './chat/GroupMessageDB';
 import GroupDB from './group/GroupDB';
@@ -106,6 +107,7 @@ export default class BaseConversation extends React.Component {
     getRowContentOffset(row) {
         return ROW_HEIGHT*row + this.searchBarHeight;
     }
+    
     onTabDoubleClick() {
         console.log("tab double click");
         var index = -1;
@@ -416,6 +418,19 @@ export default class BaseConversation extends React.Component {
             groupName = obj.disband.name;
             db.disbandGroup(obj.disband.group_id);
             notification = "群组已解散";
+        } else if (obj.update_name) {
+            groupID = obj.update_name.group_id;
+            timestamp = obj.update_name.timestamp;
+            groupName = obj.update_name.name;
+            db.updateName(groupID, groupName);
+            //更新内存中的群组名称
+            var group = this.groups.find((group) => {
+                return group.id == groupID;
+            });
+            if (group) {
+                group.name = groupName;
+            }
+            notification = `群组更名为${groupName}`;
         }
         
         console.log("group notification:", notification);
@@ -428,7 +443,7 @@ export default class BaseConversation extends React.Component {
         message.notification = notification;
         message.uuid = "";
         message.timestamp = timestamp;
-        message.content = JSON.stringify({uuid:"", notification:msg});
+        message.content = JSON.stringify({uuid:"", notification:notification});
         
         var t = new Date();
         t.setTime(message.timestamp*1000);
@@ -467,28 +482,18 @@ export default class BaseConversation extends React.Component {
                 cid:cid,
                 type:CONVERSATION_GROUP,
                 groupID:groupID,
-                name:cid,
+                name:groupName,
                 timestamp:message.timestamp,
                 unread:1,
                 message:message,
             };
-
-            var group = this.groups.find((group)=> {
-                return group.id == conv.groupID;
-            });
-            if (group) {
-                conv.name = group.name;
-            } else if (groupName) {
-                conv.name = groupName;
-            }
         }
 
         conv.message = message;
         conv.timestamp = message.timestamp;
         conv.content = notification;
-        console.log("new conv:", newConv);
+        conv.name = groupName;
         this.props.dispatch(updateConversation(conv, index));
-
     }
 
     loadConversations() {
@@ -534,7 +539,6 @@ export default class BaseConversation extends React.Component {
                    });
 
 
-
         db = GroupMessageDB.getInstance();
         
         var p2 = db.getConversations()
@@ -564,22 +568,7 @@ export default class BaseConversation extends React.Component {
                            } else if (msgObj.location) {
                                conv.content = "位置";
                            } else if (msgObj.notification) {
-                               var notification = "";
-                               var n = JSON.parse(msgObj.notification);
-                               if (n.create) {
-                                   if (n.create.master == this.props.uid) {
-                                       notification = `您创建了${n.create.name}群组`;
-                                   } else {
-                                       notification = `您加入了${n.create.name}群组`;
-                                   }
-                               } else if (n.add_member) {
-                                   notification = `${n.add_member.name}加入群`;
-                               } else if (n.quit_group) {
-                                   notification = `${n.quit_group.name}离开群`;
-                               } else if (n.disband) {
-                                   notification = "群组已解散";
-                               }
-                               conv.content = notification;
+                               conv.content = msgObj.notification;
                            } else {
                                conv.content = "";
                            }
@@ -589,17 +578,25 @@ export default class BaseConversation extends React.Component {
 
                        console.log("conversations:", convs);
                        return convs
-                   })
+                   });
         
-
-        var groupDB = GroupDB.getInstance();
-        var p3 = groupDB.getGroups();
-        
-        Promise.all([p1, p2, p3])
+        Promise.all([p1, p2])
                .then((results) => {
-                   this.groups = results[2];
                    var convs = results[0].concat(results[1]);
-                   convs = convs.map((conv)=> {
+                   return convs;
+               }).then((convs) => {
+                   var ps = convs.map((conv)=> {
+                       return ConversationDB.getInstance().getUnread(conv.cid)
+                   });
+                   return Promise.all([convs].concat(ps));
+               }).then((results) => {
+                   var newCount = 0;
+                   var convs = results[0];
+                   for (var i = 0; i < convs.length; i++) {
+                       var conv = convs[i];
+                       conv.unread = results[i+1];
+                       newCount += conv.unread;
+
                        if (conv.type == CONVERSATION_GROUP) {
                            var group = this.groups.find((group)=> {
                                return group.id == conv.groupID;
@@ -616,8 +613,7 @@ export default class BaseConversation extends React.Component {
                                conv.name = c.name;
                            }
                        }
-                       return conv;
-                   });
+                   }
 
                    //order by timestamp descend
                    convs = convs.sort((a, b) => {
@@ -628,21 +624,8 @@ export default class BaseConversation extends React.Component {
                        } else {
                            return -1;
                        }
-                   })
-                   return convs;
-               }).then((convs) => {
-                   var ps = convs.map((conv)=> {
-                       return ConversationDB.getInstance().getUnread(conv.cid)
                    });
-                   return Promise.all([convs].concat(ps));
-               }).then((results) => {
-                   var newCount = 0;
-                   var convs = results[0];
-                   for (var i = 0; i < convs.length; i++) {
-                       var conv = convs[i];
-                       conv.unread = results[i+1];
-                       newCount += conv.unread;
-                   }
+                   
                    this.props.dispatch(setConversations(convs));
                }).catch((err) => {
                    console.log("err:", err);
@@ -673,18 +656,100 @@ export default class BaseConversation extends React.Component {
         
         var im = IMService.instance;
         im.accessToken = profile.gobelieveToken;
-        im.start();
         im.addObserver(this);
+        
+        var groupDB = GroupDB.getInstance();
+        var syncKeyDB = SyncKeyDB.getInstance();
+        
+        var p1 = groupDB.getGroups();
+        var p2 = syncKeyDB.getMessageSyncKey();
+
+        Promise.all([p1, p2])
+               .then((results) => {
+                   this.groups = results[0];
+                   console.log("groups:", this.groups);
+                   if (this.groups.length == 0) {
+                       //首次登录，从服务器获取全部群组
+                       this.updateGroup();
+                   }
+                   
+                   im.syncKey = results[1];
+
+                   this.groups.forEach((group) => {
+                       if (group.syncKey != -1) {
+                           im.addSuperGroupSyncKey(group.id, group.syncKey);
+                       }
+                   });
+
+                   im.start();
+               })
+               .then(() => {
+                   this.loadConversations();
+               });
         
         this.uid = profile.uid;
         this.name = profile.name;
         this.accessToken = profile.accessToken;
         this.refreshToken = profile.refreshToken;
         this.expires = profile.expires;
-        
-        this.loadConversations();
     }
 
+    updateGroup() {
+        var self = this;
+        var url = SDK_API_URL + "/client/groups";
+        var profile = ProfileDB.getInstance();
+        var accessToken = profile.gobelieveToken;
+        var groupDB = GroupDB.getInstance();
+
+        console.log("get all groups...");
+        fetch(url, {
+            method:"GET",  
+            headers: {
+                'Accept': 'application/json',
+                "Authorization": "Bearer " + accessToken
+            },
+        }).then((response) => {
+            return Promise.all([response.status, response.json()])
+        }).then((results) => {
+            var status = results[0];
+            var r = results[1];
+            
+            console.log("group response:", r);
+            if (status != 200) {
+                console.log("get groups err:", r);
+                return;
+            } else {
+                var groups = r.data;
+                groups.forEach((group) => {
+                    group.timestamp = 0;
+                    groupDB.insertGroup(group);
+                });
+                this.groups = groups;
+                var convs = this.props.conversations;
+                if (convs) {
+                    convs = convs.map((conv)=> {
+                        if (conv.type == CONVERSATION_GROUP) {
+                            var group = this.groups.find((group) => {
+                                return conv.groupID == group.id;
+                            });
+
+                            if (group) {
+                                conv.name = group.name;
+                            }
+                        }
+                        return conv;
+                    });
+                    
+                    this.props.dispatch(setConversations(convs));
+                }
+            }
+        }).catch((error) => {
+            console.log("error:", error);
+
+        });
+        
+    }
+    
     setApplicationIconBadgeNumber(newCount) {
         var badge = {badge:newCount ? newCount : null, tabIndex:0};
         this.props.navigator.setTabBadge(badge);

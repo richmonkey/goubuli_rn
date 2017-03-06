@@ -72,10 +72,9 @@ export class BasePeerChat extends Chat {
             //从搜索页面跳转来, 查看某一条消息
             var p1 = db.getEarlierMessages(this.props.receiver, this.props.messageID, 2);
             var p2 = db.getMessage(this.props.messageID);
-            var p3 = db.getLaterMessages(this.props.receiver, this.props.messageID);
-            Promise.all([p1, p2, p3])
+            Promise.all([p1, p2])
                    .then((results) => {
-                       var msgs = results[2].concat(results[1], results[0]);
+                       var msgs = [results[1]].concat(results[0]);
                        for (var i in msgs) {
                            var m = msgs[i];
                            m.receiver = m.group_id;
@@ -84,9 +83,7 @@ export class BasePeerChat extends Chat {
                        }
                        console.log("set messages:", msgs.length);
                        this.props.dispatch(setMessages(msgs));
-                       setTimeout(() => {
-                           this.scrollToTop(false);
-                       }, 0);
+                     
                    });
             this.state.canLoadNewContent = true;
         } else {
@@ -104,7 +101,6 @@ export class BasePeerChat extends Chat {
             this.state.canLoadNewContent = false;
         }
     }
-
 
     componentWillUnmount() {
         super.componentWillUnmount();

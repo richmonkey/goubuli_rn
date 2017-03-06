@@ -49,6 +49,20 @@ export default class Search extends Component {
         var navigator = this.props.navigator;
         navigator.pop();
     }
+
+    onSearchBarChangeText(e) {
+        console.log("search bar change text:", e);
+        if (typeof(e) == 'string' && e) {
+            this.setState({searchText:e}, () => {
+                this.search();
+            });
+            
+        } else {
+            this.setState({searchText:""}, () => {
+                this.search();
+            });
+        }
+    }
     
     render() {
         return (
