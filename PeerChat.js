@@ -6,6 +6,7 @@ import ConversationDB from './model/ConversationDB';
 import { NativeModules } from 'react-native';
 import {CONVERSATION_GROUP, CONVERSATION_PEER} from './IConversation';
 
+
 class PeerChat extends BasePeerChat {
     static navigatorStyle = {
         navBarBackgroundColor: '#4dbce9',
@@ -69,6 +70,7 @@ class PeerChat extends BasePeerChat {
                                   coordinate.longitude,
                                   coordinate.latitude,
                                   coordinate.address);
+            
                       this.sendLocationMessage(coordinate.longitude,
                                                coordinate.latitude,
                                                coordinate.address);

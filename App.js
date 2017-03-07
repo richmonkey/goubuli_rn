@@ -200,11 +200,22 @@ var app = {
     
     startApp: function() {
         this.store = createStore(appReducer);
-        AppState.addEventListener('change', this.handleAppStateChange.bind(this));
+        if (Platform.OS == 'ios') {
+            AppState.addEventListener('change', this.handleAppStateChange.bind(this));
+        } else {
+            //android 会打开多个activity(地图)
+            var self = this;
+            RCTDeviceEventEmitter.addListener('app_state', function(event) {
+                self.handleAppStateChange(event.state);
+            });
+        }
+        
         var im = IMService.instance;
         im.startReachabilityNotifier();
 
         this.registerScreens();
+
+
 
         ProfileDB.getInstance().load((e, o) => {
             console.log("profile:", e, o);

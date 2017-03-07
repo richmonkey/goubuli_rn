@@ -128,9 +128,12 @@ class GroupChat extends BaseGroupChat {
                                   coordinate.longitude,
                                   coordinate.latitude,
                                   coordinate.address);
+                      //todo fix bug
+                      //此时连接处于断开状态
                       this.sendLocationMessage(coordinate.longitude,
-                                             coordinate.latitude,
-                                             coordinate.address);
+                                               coordinate.latitude,
+                                               coordinate.address);
+
                   })
                   .catch((e) => {
                       console.log("location picker err:", e);

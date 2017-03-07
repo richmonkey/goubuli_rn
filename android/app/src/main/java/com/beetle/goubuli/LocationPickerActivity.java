@@ -73,7 +73,7 @@ public class LocationPickerActivity extends BaseActivity implements GeocodeSearc
         mapView.onCreate(savedInstanceState);// 必须要写
         aMap = mapView.getMap();
 
-        label = (TextView) findViewById(R.id.label);
+        label = (TextView) findViewById(R.id.address);
         pin = findViewById(R.id.pin);
         aMap.setOnMapTouchListener(new AMap.OnMapTouchListener() {
             @Override
