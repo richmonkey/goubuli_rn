@@ -9,6 +9,7 @@ import android.util.Log;
 import com.airbnb.android.react.maps.MapsPackage;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableMap;
+import com.joshblour.reactnativepermissions.ReactNativePermissionsPackage;
 import com.oblador.vectoricons.VectorIconsPackage;
 import com.rnfs.RNFSPackage;
 import com.zmxv.RNSound.RNSoundPackage;
@@ -56,7 +57,8 @@ public class MainApplication extends NavigationApplication implements Applicatio
                 new ImagePickerPackage(),
                 new SQLitePluginPackage(),
                 new LocationPackage(),
-                new VectorIconsPackage()
+                new VectorIconsPackage(),
+                new ReactNativePermissionsPackage()
         );
     }
 

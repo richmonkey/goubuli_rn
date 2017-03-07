@@ -124,30 +124,31 @@ export default class Chat extends React.Component {
     }
 
     componentDidMount() {
-        AudioRecorder.checkAuthorizationStatus()
-                     .then((status)=>{
-                         console.log("audio auth status:", status);
-                         if (status == "undetermined") {
-                             return AudioRecorder.requestAuthorization();
-                         }
-                     })
-                     .then((granted)=>{
-                         console.log("audio auth granted:", granted)
-                     })
-                     .then(()=> {
-                         return Permissions.getPermissionStatus('location');
-                     })
-                     .then((response) => {
-                         if (response == 'undetermined') {
-                             return Permissions.requestPermission('location');
-                         } else {
-                             return response;
-                         }
-                     })
-                     .then((granted)=> {
-                         console.log("location auth granted:", granted);
-                     })
-                     .catch((e)=>{console.log("audio auth err:", e)});
+        Permissions.getPermissionStatus('microphone')
+                   .then((status) => {
+                       if (status == 'undetermined') {
+                           return Permissions.requestPermission('microphone');
+                       } else {
+                           return status;
+                       }
+                   })
+                   .then((granted) => {
+                       console.log("microphone auth granted:", granted);
+                   })
+                   .then(()=> {
+                       return Permissions.getPermissionStatus('location');
+                   })
+                   .then((response) => {
+                       if (response == 'undetermined') {
+                           return Permissions.requestPermission('location');
+                       } else {
+                           return response;
+                       }
+                   })
+                   .then((granted)=> {
+                       console.log("location auth granted:", granted);
+                   })
+                   .catch((e)=>{console.log("audio auth err:", e)});
     }
 
     componentWillUnmount() {

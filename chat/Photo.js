@@ -14,6 +14,17 @@ import {
 import PhotoBrowser from 'react-native-photo-browser';
 
 export default class Photo extends Component {
+    static navigatorStyle = {
+        navBarBackgroundColor: '#4dbce9',
+        navBarTextColor: '#ffff00',
+        navBarSubtitleTextColor: '#ff0000',
+        navBarButtonColor: '#ffffff',
+        statusBarTextColorScheme: 'light',
+
+        tabBarHidden:true,
+        navBarHidden:true,
+    };
+    
     constructor(props) {
         super(props);
         this.onBack = this.onBack.bind(this);
