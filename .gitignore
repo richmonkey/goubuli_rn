@@ -39,3 +39,6 @@ npm-debug.log
 buck-out/
 \.buckd/
 android/keystores/debug.keystore
+
+ios/Pods/
+ios/app.xcworkspace/

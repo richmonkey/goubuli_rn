@@ -12,11 +12,13 @@ import {
     NetInfo,
     View,
     Platform,
+    Keyboard,
     AsyncStorage
 } from 'react-native';
 
 import { NativeModules, NativeAppEventEmitter } from 'react-native';
-import Spinner from 'react-native-loading-spinner-overlay';
+
+import ProgressHUD from './ProgressHUD';
 
 var IMService = require("./chat/im");
 var im = IMService.instance;
@@ -30,7 +32,6 @@ export default class Authentication extends Component {
             code:"",
             receivingSMS:false,//正在接受短信
             tick:0,//获取短信验证码计时
-            spinnerVisible:false
         };
     }
     
@@ -73,9 +74,8 @@ export default class Authentication extends Component {
             number:this.state.number,
         };
 
-        this.setState({
-            spinnerVisible:true
-        });
+        ProgressHUD.show();
+        
         fetch(url, {
             method:"POST",  
             headers: {
@@ -87,12 +87,8 @@ export default class Authentication extends Component {
             console.log("status:", response.status);
             return Promise.all([response.status, response.json()]);
         }).then((r) => {
-            this.setState({
-                spinnerVisible:false
-            });
             var status = r[0];
             var responseJson = r[1];
-
             if (status == 200) {
                 console.log("response json:", responseJson);
 
@@ -117,14 +113,14 @@ export default class Authentication extends Component {
                 });
             } else {
                 console.log(responseJson.meta.message);
-                alert(responseJson.meta.message);
+                return Promise.reject(responseJson.meta.message);
             }
 
+        }).then(() => {
+            ProgressHUD.dismiss();
         }).catch((error) => {
             console.log("error:", error);
-            this.setState({
-                spinnerVisible:false
-            });
+            ProgressHUD.dismiss();
             alert(error);
         });
     }
@@ -138,14 +134,13 @@ export default class Authentication extends Component {
         if (this.state.receivingSMS) {
             return;
         }
+
+        Keyboard.dismiss();
         
         var url = API_URL + `/verify_code?zone=86&number=${this.state.number}`;
         console.log("url:", url);
 
-        this.setState({
-            spinnerVisible:true
-        });
-        
+        ProgressHUD.show();
         fetch(url, {
             method:"POST",  
             headers: {
@@ -157,10 +152,6 @@ export default class Authentication extends Component {
         }).then((r) => {
             var status = r[0];
             var responseJson = r[1];
-
-            this.setState({
-                spinnerVisible:false
-            });
             if (status == 200) {
                 console.log("response json:", responseJson);
                 var code = responseJson.code;
@@ -184,11 +175,11 @@ export default class Authentication extends Component {
             } else {
                 console.log(responseJson.meta.message);
             }
+        }).then(() => {
+            ProgressHUD.dismiss();
         }).catch((error) => {
             console.log("error:", error);
-            this.setState({
-                spinnerVisible:false
-            });
+            ProgressHUD.dismiss();
         });
     }
     
@@ -206,7 +197,6 @@ export default class Authentication extends Component {
 
         return (
             <View style={{flex:1, marginHorizontal:16}}>
-                <Spinner visible={this.state.spinnerVisible} />
                 <TextInput
                     onChangeText={(text) => {
                             this.setState({number:text});

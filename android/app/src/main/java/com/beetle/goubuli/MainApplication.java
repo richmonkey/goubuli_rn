@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
+import com.aakashns.reactnativedialogs.ReactNativeDialogsPackage;
 import com.airbnb.android.react.maps.MapsPackage;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableMap;
@@ -58,7 +59,8 @@ public class MainApplication extends NavigationApplication implements Applicatio
                 new SQLitePluginPackage(),
                 new LocationPackage(),
                 new VectorIconsPackage(),
-                new ReactNativePermissionsPackage()
+                new ReactNativePermissionsPackage(),
+                new ReactNativeDialogsPackage()
         );
     }
 

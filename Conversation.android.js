@@ -12,7 +12,6 @@ import {
     DeviceEventEmitter,
 } from 'react-native';
 import {connect} from 'react-redux'
-var SearchBar = require('react-native-search-bar');
 import { NativeModules } from 'react-native';
 
 const screen = Dimensions.get('window');

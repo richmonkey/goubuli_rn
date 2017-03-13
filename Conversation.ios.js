@@ -26,7 +26,7 @@ class Conversation extends BaseConversation {
     static navigatorButtons = {
         rightButtons: [
             {
-                title: '+', 
+                title: '群聊', 
                 id: 'new', 
                 showAsAction: 'ifRoom' 
             },

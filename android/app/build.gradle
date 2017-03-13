@@ -84,7 +84,7 @@ def enableProguardInReleaseBuilds = false
 
 android {
     compileSdkVersion 23
-    buildToolsVersion "23.0.1"
+    buildToolsVersion '25.0.0'
 
     defaultConfig {
         applicationId "com.beetle.goubuli"
@@ -143,7 +143,13 @@ android {
     }
 }
 
+
+repositories {
+    maven { url "https://jitpack.io" }
+}
+
 dependencies {
+    compile project(':react-native-dialogs')
     compile project(':react-native-vector-icons')
     compile project(':react-native-geocoder')
     compile project(':react-native-permissions')
